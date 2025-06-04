@@ -15,9 +15,9 @@ app.use(cors({
 // JSON 파싱
 app.use(express.json());
 
-// Multer 설정 (메모리에 저장)
+// Multer 설정 (메모리에 저장 - 개인정보 보호)
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.memoryStorage(), // 파일을 메모리에만 저장, 디스크에 저장하지 않음
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB
   },
@@ -157,6 +157,8 @@ app.post('/api/medical/analyze', upload.single('medicalFile'), async (req, res) 
 
   console.log('분석 완료');
   res.end();
+  
+  // 개인정보 보호: 메모리에 저장된 파일 데이터는 응답 완료와 함께 자동으로 가비지 컬렉션됨
 });
 
 // 에러 핸들링

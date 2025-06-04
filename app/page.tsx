@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import ImageUploadSection from "@/components/image-upload-section"
 import AnalysisResults from "@/components/analysis-results"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 import {
   Stethoscope,
   Camera,
@@ -23,6 +25,8 @@ import {
   Send,
   User,
   Bot,
+  LogOut,
+  Settings,
 } from "lucide-react"
 import type React from "react"
 
@@ -34,6 +38,9 @@ interface Message {
 }
 
 export default function HomePage() {
+  const { user, logout, isLoading } = useAuth()
+  const router = useRouter()
+  
   // 파일 업로드 및 분석 관련 상태
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisData, setAnalysisData] = useState("")
@@ -303,12 +310,68 @@ export default function HomePage() {
                 <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">
                   소개
                 </a>
-                <Button variant="outline" size="sm">
-                  로그인
-                </Button>
-                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                  시작하기
-                </Button>
+                
+                {/* 로그인 상태에 따른 UI 분기 */}
+                {isLoading ? (
+                  <div className="flex items-center space-x-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  </div>
+                ) : user ? (
+                  <div className="flex items-center space-x-3">
+                    {/* 사용자 프로필 */}
+                    <div className="flex items-center">
+                      {user.profileImage ? (
+                        <img
+                          src={user.profileImage}
+                          alt="프로필"
+                          className="w-8 h-8 rounded-full border border-gray-300"
+                          onError={(e) => {
+                            // 이미지 로드 실패 시 기본 아바타로 교체
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                      ) : null}
+                      {!user.profileImage && (
+                        <div className="w-8 h-8 rounded-full border border-gray-300 bg-emerald-100 flex items-center justify-center">
+                          <User className="w-4 h-4 text-emerald-600" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* 설정 버튼 */}
+                    <Button variant="ghost" size="sm" className="p-2">
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    
+                    {/* 로그아웃 버튼 */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={logout}
+                      className="text-gray-600 hover:text-red-600"
+                    >
+                      <LogOut className="w-4 h-4 mr-1" />
+                      로그아웃
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => router.push('/login')}
+                    >
+                      로그인
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      onClick={() => router.push('/login')}
+                    >
+                      시작하기
+                    </Button>
+                  </div>
+                )}
               </nav>
             </div>
           </div>
@@ -407,7 +470,14 @@ export default function HomePage() {
                   </Button>
                 </div>
                 <div className="text-xs text-gray-500 mt-2 text-center">
-                  MediCare AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.
+                  <div className="space-y-1">
+                    <p>
+                      <strong>개인정보 보호:</strong> 업로드된 진료 기록은 서버에 저장되지 않으며, 분석 완료 후 즉시 삭제됩니다.
+                    </p>
+                    <p>
+                      MediCare AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

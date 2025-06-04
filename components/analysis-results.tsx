@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain, Clock, Loader2, Activity, Download, Share, Calendar } from "lucide-react"
+import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain, Clock, Loader2, Activity, Download, Share, Calendar, Shield } from "lucide-react"
 import { useEffect, useRef } from "react"
 
 interface AnalysisResultsProps {
@@ -201,7 +201,6 @@ export default function AnalysisResults({
       {/* 분석 완료 시에만 표시되는 추가 정보 */}
       {!isAnalyzing && analysisData && (
         <>
-
           {/* 액션 버튼 */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg h-12">
@@ -216,6 +215,24 @@ export default function AnalysisResults({
               <Share className="w-4 h-4 mr-2" />
               결과 공유하기
             </Button>
+          </div>
+
+          {/* 개인정보 보호 안내 */}
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Shield className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-emerald-800 mb-1">
+                  데이터 보안 안내
+                </h4>
+                <p className="text-xs text-emerald-700 leading-relaxed">
+                  분석된 진료 기록은 <strong>서버에 영구 저장되지 않습니다</strong>. 
+                  분석 완료와 함께 모든 개인정보가 안전하게 삭제되어 개인정보 보호가 보장됩니다.
+                </p>
+              </div>
+            </div>
           </div>
         </>
       )}

@@ -4,7 +4,8 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Upload, FileText, Camera, Loader2, AlertCircle, Info } from "lucide-react"
+import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield } from "lucide-react"
+import { useApiRequest } from "@/contexts/AuthContext"
 
 interface ImageUploadSectionProps {
   onAnalysisStart: () => void
@@ -33,6 +34,7 @@ export default function ImageUploadSection({
   const [error, setError] = useState<string | null>(null)
   const [supportedFormats, setSupportedFormats] = useState<SupportedFormat[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { apiRequest } = useApiRequest()
   
   // API URL 환경변수 설정
   const backendURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9001'
@@ -44,7 +46,7 @@ export default function ImageUploadSection({
 
   const fetchSupportedFormats = async () => {
     try {
-      const response = await fetch(`${backendURL}/api/medical/supported-formats`)
+      const response = await apiRequest('/api/medical/supported-formats')
       if (response.ok) {
         const data = await response.json()
         // 응답이 배열인지 확인
@@ -121,10 +123,13 @@ export default function ImageUploadSection({
       const formData = new FormData()
       formData.append('medicalFile', file)
 
-      // 파일 업로드 및 SSE 연결 시작
-      const response = await fetch(`${backendURL}/api/medical/analyze`, {
+      // Authorization 헤더를 포함한 파일 업로드 및 SSE 연결 시작
+      const response = await apiRequest('/api/medical/analyze', {
         method: 'POST',
         body: formData,
+        headers: {
+          // FormData일 때는 Content-Type을 설정하지 않음 (브라우저가 자동 설정)
+        }
       })
 
       if (!response.ok) {
@@ -387,6 +392,26 @@ export default function ImageUploadSection({
           )}
         </div>
       </CardContent>
+      
+      {/* 개인정보 보호 안내 */}
+      <div className="px-6 pb-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Shield className="w-4 h-4 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-semibold text-blue-800 mb-1">
+                개인정보 보호 안내
+              </h4>
+              <p className="text-xs text-blue-700 leading-relaxed">
+                업로드된 진료 기록은 <strong>서버에 저장되지 않으며</strong>, 분석 완료 후 즉시 삭제됩니다. <br/>
+                모든 데이터는 메모리에서만 처리되어 개인정보가 안전하게 보호됩니다.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </Card>
   )
 }
