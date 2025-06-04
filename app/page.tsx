@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import ImageUploadSection from "@/components/image-upload-section"
+import AnalysisResults from "@/components/analysis-results"
 import {
   Stethoscope,
   Camera,
@@ -32,10 +34,15 @@ interface Message {
 }
 
 export default function HomePage() {
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null)
-  const [showAnalysis, setShowAnalysis] = useState(false)
+  // 파일 업로드 및 분석 관련 상태
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisData, setAnalysisData] = useState("")
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
+  const [showAnalysis, setShowAnalysis] = useState(false)
+  const [analysisProgress, setAnalysisProgress] = useState(0)
+  const [statusMessage, setStatusMessage] = useState("")
+  
+  // 기존 상태들
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [isResizing, setIsResizing] = useState(false)
   const [inputMessage, setInputMessage] = useState("")
@@ -43,41 +50,59 @@ export default function HomePage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isResultPanelCollapsed, setIsResultPanelCollapsed] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
-  const [resultPanelWidth, setResultPanelWidth] = useState(400)
+  const [resultPanelWidth, setResultPanelWidth] = useState(600)
   const [isResizingResult, setIsResizingResult] = useState(false)
 
-  // 파일 업로드 처리
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setIsUploading(true)
-      // 파일 업로드 시뮬레이션
-      setTimeout(() => {
-        setUploadedFile(file.name)
-        setIsUploading(false)
-        setIsAnalyzing(true)
-        // 분석 시뮬레이션
-        setTimeout(() => {
-          setIsAnalyzing(false)
-          setShowAnalysis(true)
-          // 초기 AI 메시지 추가
-          addMessage(
-            "assistant",
-            "안녕하세요! 진료 기록 분석이 완료되었습니다. 분석 결과에 대해 궁금한 점이 있으시면 질문해주세요.",
-          )
-        }, 3000)
-      }, 1500)
-    }
+  // 분석 시작 핸들러
+  const handleAnalysisStart = () => {
+    setIsAnalyzing(true)
+    setAnalysisData("")
+    setAnalysisError(null)
+    setAnalysisProgress(0)
+    setStatusMessage("분석을 시작합니다...")
+    setShowAnalysis(true)
+  }
+
+  // 실시간 분석 결과 핸들러
+  const handleAnalysisResult = (data: string, tokenCount?: number, progress?: number) => {
+    setAnalysisData(data)
+    if (progress !== undefined) setAnalysisProgress(progress)
+  }
+
+  // 분석 완료 핸들러
+  const handleAnalysisComplete = () => {
+    setIsAnalyzing(false)
+    setAnalysisProgress(100)
+    setStatusMessage("분석이 완료되었습니다.")
+    // 초기 AI 메시지 추가
+    addMessage(
+      "assistant",
+      "안녕하세요! 진료 기록 분석이 완료되었습니다. 분석 결과에 대해 궁금한 점이 있으시면 질문해주세요."
+    )
+  }
+
+  // 분석 오류 핸들러
+  const handleAnalysisError = (error: string) => {
+    setAnalysisError(error)
+    setIsAnalyzing(false)
+    setStatusMessage(`오류: ${error}`)
+  }
+
+  // 상태 업데이트 핸들러
+  const handleStatusUpdate = (status: string, type?: 'info' | 'warning' | 'error' | 'success') => {
+    setStatusMessage(status)
+    console.log(`[${type?.toUpperCase() || 'INFO'}] ${status}`)
   }
 
   // 새 분석 시작
-  const resetUpload = () => {
-    setUploadedFile(null)
-    setShowAnalysis(false)
+  const resetAnalysis = () => {
     setIsAnalyzing(false)
+    setAnalysisData("")
+    setAnalysisError(null)
+    setAnalysisProgress(0)
+    setStatusMessage("")
+    setShowAnalysis(false)
     setMessages([])
-    const input = document.getElementById("file-upload") as HTMLInputElement
-    if (input) input.value = ""
   }
 
   // 메시지 추가
@@ -200,102 +225,71 @@ export default function HomePage() {
           style={{ width: isSidebarCollapsed ? "64px" : `${sidebarWidth}px` }}
         >
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-gray-700 flex items-center justify-between flex-shrink-0">
-            {!isSidebarCollapsed && (
-              <Button
-                variant="outline"
-                className="flex-1 justify-start bg-transparent border-gray-600 text-white hover:bg-gray-800"
-                onClick={resetUpload}
-              >
-                <Plus className="w-4 h-4 mr-2" />새 분석 시작
-              </Button>
-            )}
-            {isSidebarCollapsed && (
+          <div className="p-4 border-b border-gray-700">
+            <div className="flex items-center justify-between">
+              {!isSidebarCollapsed && (
+                <div className="flex items-center space-x-2">
+                  <Stethoscope className="w-6 h-6 text-emerald-400" />
+                  <span className="font-semibold">MediCare AI</span>
+                </div>
+              )}
               <Button
                 variant="ghost"
-                size="icon"
-                className="mx-auto text-gray-400 hover:text-white"
-                onClick={resetUpload}
+                size="sm"
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="text-gray-400 hover:text-white p-1"
               >
-                <Plus className="w-5 h-5" />
+                {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
               </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-400 hover:text-white ml-1"
-              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            >
-              {isSidebarCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-            </Button>
+            </div>
           </div>
 
-          {/* Analysis History */}
-          {!isSidebarCollapsed && (
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4">
-                <div className="text-sm text-gray-400 mb-3">최근 분석</div>
-                <div className="space-y-2">
-                  <div className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
-                    <div className="text-sm font-medium truncate">{uploadedFile}</div>
-                    <div className="text-xs text-gray-400 mt-1">방금 전</div>
-                  </div>
-                  {/* 예시 항목들 */}
-                  <div className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
-                    <div className="text-sm font-medium truncate">건강검진결과.pdf</div>
-                    <div className="text-xs text-gray-400 mt-1">2일 전</div>
-                  </div>
-                  <div className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
-                    <div className="text-sm font-medium truncate">혈액검사결과.jpg</div>
-                    <div className="text-xs text-gray-400 mt-1">1주일 전</div>
-                  </div>
-                  <div className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
-                    <div className="text-sm font-medium truncate">처방전_2024_05_15.png</div>
-                    <div className="text-xs text-gray-400 mt-1">2주일 전</div>
-                  </div>
-                  <div className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
-                    <div className="text-sm font-medium truncate">MRI_결과.pdf</div>
-                    <div className="text-xs text-gray-400 mt-1">1개월 전</div>
-                  </div>
+          {/* Sidebar Content */}
+          <div className="flex-1 p-4">
+            {!isSidebarCollapsed && (
+              <div className="space-y-4">
+                <Button
+                  onClick={resetAnalysis}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center space-x-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>새로운 분석</span>
+                </Button>
+                <div className="text-sm text-gray-400">
+                  <p>파일 분석이 완료되었습니다. 분석 결과에 대해 AI와 대화해보세요.</p>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Sidebar Footer */}
-          {!isSidebarCollapsed && (
-            <div className="p-4 border-t border-gray-700 flex-shrink-0">
-              <div className="text-xs text-gray-400">
-                MediCare AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.
-              </div>
-            </div>
-          )}
+          {/* Resize Handle */}
+          <div
+            className="w-1 bg-gray-600 hover:bg-gray-500 cursor-col-resize absolute top-0 right-0 h-full"
+            onMouseDown={startResizing}
+          />
         </div>
       )}
 
-      {/* Resizer */}
-      {showAnalysis && !isSidebarCollapsed && (
-        <div
-          className="w-1 bg-gray-300 hover:bg-emerald-500 cursor-col-resize transition-colors flex-shrink-0"
-          onMouseDown={startResizing}
-        ></div>
-      )}
-
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b bg-white z-50 flex-shrink-0">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
+        <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <Stethoscope className="w-5 h-5 text-white" />
-                </div>
+                <Stethoscope className="w-8 h-8 text-emerald-600" />
                 <span className="text-xl font-bold text-gray-900">MediCare AI</span>
               </div>
+              {showAnalysis && (
+                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                  분석 완료
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center space-x-4">
               <nav className="hidden md:flex items-center space-x-6">
                 <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                  기능
+                  서비스
                 </a>
                 <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">
                   요금제
@@ -320,103 +314,19 @@ export default function HomePage() {
           {!showAnalysis ? (
             <div className="w-full p-6 overflow-y-auto">
               <div className="max-w-2xl mx-auto">
-                {!isAnalyzing && (
-                  <>
-                    {/* Service Title */}
-                    <div className="text-center mb-8">
-                      <div className="inline-block">
-                        <div className="bg-emerald-100 text-emerald-800 px-6 py-3 rounded-full text-lg font-medium">
-                          AI 기반 의료 분석 서비스
-                        </div>
-                      </div>
-                    </div>
+                {/* Description */}
+                <p className="text-gray-600 text-lg mb-12 text-center">
+                  처방전, 검사 결과지, 진단서 등의 이미지를 업로드해주세요
+                </p>
 
-                    {/* Description */}
-                    <p className="text-gray-600 text-lg mb-12 text-center">
-                      처방전, 검사 결과지, 진단서 등의 이미지를 업로드해주세요
-                    </p>
-                  </>
-                )}
-
-                {/* Upload Area */}
-                <div className="border-2 border-dashed border-emerald-300 rounded-2xl p-12 bg-white">
-                  {isUploading ? (
-                    <div className="flex flex-col items-center space-y-4">
-                      <Loader2 className="w-12 h-12 animate-spin text-emerald-600" />
-                      <p className="text-gray-600 text-lg">파일을 업로드하고 있습니다...</p>
-                    </div>
-                  ) : isAnalyzing ? (
-                    <div className="flex flex-col items-center space-y-4">
-                      <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center">
-                        <Brain className="w-8 h-8 text-emerald-600 animate-pulse" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-emerald-600 font-medium text-lg mb-2">AI가 분석 중입니다</p>
-                        <p className="text-gray-600">진료 기록을 분석하여 상세한 정보를 제공합니다...</p>
-                      </div>
-                    </div>
-                  ) : uploadedFile ? (
-                    <div className="flex flex-col items-center space-y-6">
-                      <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center">
-                        <FileText className="w-8 h-8 text-green-600" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-green-600 font-medium text-lg mb-2">업로드 완료</p>
-                        <p className="text-gray-600">{uploadedFile}</p>
-                      </div>
-                      <Button
-                        variant="outline"
-                        onClick={resetUpload}
-                        className="border-emerald-300 text-emerald-600 hover:bg-emerald-50"
-                      >
-                        다른 파일 업로드
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-6">
-                      <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto">
-                        <Camera className="w-8 h-8 text-emerald-600" />
-                      </div>
-                      <div className="space-y-2 text-center">
-                        <p className="text-xl font-medium text-gray-900">파일을 드래그하거나 클릭하여 업로드</p>
-                        <p className="text-gray-500">JPG, PNG, PDF 파일 지원 (최대 10MB)</p>
-                      </div>
-                      <input
-                        id="file-upload"
-                        type="file"
-                        accept="image/*,.pdf"
-                        onChange={handleFileUpload}
-                        className="hidden"
-                      />
-                      <div className="text-center">
-                        <Button
-                          onClick={() => document.getElementById("file-upload")?.click()}
-                          className="bg-emerald-600 hover:bg-emerald-700 px-8 py-3 text-lg"
-                        >
-                          파일 선택하기
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Supported Document Types */}
-                {!isAnalyzing && (
-                  <div className="flex justify-center items-center space-x-8 mt-8">
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                      <span>처방전</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                      <span>검사 결과지</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                      <span>진단서</span>
-                    </div>
-                  </div>
-                )}
+                {/* Upload Component */}
+                <ImageUploadSection
+                  onAnalysisStart={handleAnalysisStart}
+                  onAnalysisResult={handleAnalysisResult}
+                  onAnalysisComplete={handleAnalysisComplete}
+                  onError={handleAnalysisError}
+                  onStatusUpdate={handleStatusUpdate}
+                />
               </div>
             </div>
           ) : (
@@ -500,167 +410,54 @@ export default function HomePage() {
           {/* Analysis Results Panel */}
           {showAnalysis && (
             <>
-              {/* Result Panel Resizer */}
-              {showAnalysis && !isResultPanelCollapsed && (
-                <div
-                  className="w-1 bg-gray-300 hover:bg-emerald-500 cursor-col-resize transition-colors flex-shrink-0"
-                  onMouseDown={startResizingResult}
-                ></div>
-              )}
+              {/* Resize Handle for Results Panel */}
               <div
-                className={`border-l bg-white transition-all duration-300 flex flex-col ${
-                  isResultPanelCollapsed ? "w-12" : ""
+                className="w-1 bg-gray-300 hover:bg-gray-400 cursor-col-resize"
+                onMouseDown={startResizingResult}
+              />
+
+              {/* Analysis Results Panel */}
+              <div
+                className={`bg-gray-50 border-l border-gray-200 overflow-y-auto transition-all duration-300 ${
+                  isResultPanelCollapsed ? "w-16" : ""
                 }`}
-                style={{ width: isResultPanelCollapsed ? "48px" : `${resultPanelWidth}px` }}
+                style={{ width: isResultPanelCollapsed ? "64px" : `${resultPanelWidth}px` }}
               >
-                {/* Results Header */}
-                <div className="p-4 border-b flex items-center justify-between flex-shrink-0">
-                  {!isResultPanelCollapsed && (
-                    <>
-                      <div>
-                        <h2 className="text-xl font-bold text-gray-900">진료 결과 분석</h2>
-                        <p className="text-sm text-gray-600 mt-1">AI가 분석한 진료 기록 결과입니다</p>
-                      </div>
-                    </>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-gray-900 ml-auto"
-                    onClick={() => setIsResultPanelCollapsed(!isResultPanelCollapsed)}
-                  >
-                    {isResultPanelCollapsed ? (
-                      <ChevronLeft className="w-5 h-5" />
-                    ) : (
-                      <ChevronRight className="w-5 h-5" />
-                    )}
-                  </Button>
-                </div>
-
-                {/* Results Content */}
-                {!isResultPanelCollapsed && (
-                  <div className="flex-1 overflow-y-auto p-4">
-                    <div className="space-y-6">
-                      {/* 분석 개요 */}
-                      <Card>
-                        <CardHeader>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Brain className="w-5 h-5 text-emerald-600" />
-                              <CardTitle>분석 개요</CardTitle>
-                            </div>
-                            <Badge className="bg-green-100 text-green-800">분석 완료</Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="text-center p-3 bg-blue-50 rounded-lg">
-                              <div className="text-2xl font-bold text-blue-600">3</div>
-                              <div className="text-sm text-gray-600">검출된 의학 용어</div>
-                            </div>
-                            <div className="text-center p-3 bg-green-50 rounded-lg">
-                              <div className="text-2xl font-bold text-green-600">2</div>
-                              <div className="text-sm text-gray-600">처방 약물</div>
-                            </div>
-                            <div className="text-center p-3 bg-orange-50 rounded-lg">
-                              <div className="text-2xl font-bold text-orange-600">1</div>
-                              <div className="text-sm text-gray-600">주의사항</div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* 진단 정보 */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="flex items-center space-x-2">
-                            <FileText className="w-4 h-4" />
-                            <span>진단 정보</span>
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-3">
-                            <div className="flex items-start space-x-3">
-                              <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                              <div>
-                                <div className="font-medium">고혈압 (Essential Hypertension)</div>
-                                <div className="text-sm text-gray-600">혈압: 140/90 mmHg</div>
-                                <div className="text-xs text-gray-500 mt-1">
-                                  정상 범위를 초과하는 혈압 수치가 확인되었습니다.
-                                </div>
-                              </div>
-                            </div>
-                            <Separator />
-                            <div className="flex items-start space-x-3">
-                              <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                              <div>
-                                <div className="font-medium">콜레스테롤 수치 주의</div>
-                                <div className="text-sm text-gray-600">총 콜레스테롤: 220 mg/dL</div>
-                                <div className="text-xs text-gray-500 mt-1">권장 수치(200 mg/dL)보다 높습니다.</div>
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* 처방 약물 */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>처방 약물</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-3">
-                            <div className="border rounded-lg p-3">
-                              <div className="font-medium">아모디핀 (Amlodipine) 5mg</div>
-                              <div className="text-sm text-gray-600 mt-1">칼슘채널차단제 - 혈압 강하제</div>
-                              <div className="text-xs text-gray-500 mt-2">
-                                <strong>복용법:</strong> 1일 1회, 식후 복용
-                              </div>
-                              <Button variant="link" size="sm" className="p-0 h-auto text-emerald-600">
-                                상세 정보 보기 <ExternalLink className="w-3 h-3 ml-1" />
-                              </Button>
-                            </div>
-                            <div className="border rounded-lg p-3">
-                              <div className="font-medium">아토르바스타틴 (Atorvastatin) 20mg</div>
-                              <div className="text-sm text-gray-600 mt-1">스타틴계 - 콜레스테롤 강하제</div>
-                              <div className="text-xs text-gray-500 mt-2">
-                                <strong>복용법:</strong> 1일 1회, 저녁 식후 복용
-                              </div>
-                              <Button variant="link" size="sm" className="p-0 h-auto text-emerald-600">
-                                상세 정보 보기 <ExternalLink className="w-3 h-3 ml-1" />
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      {/* AI 권장사항 */}
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>AI 권장사항</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-                            <h4 className="font-medium text-emerald-800 mb-2">생활습관 개선</h4>
-                            <ul className="text-sm text-emerald-700 space-y-1">
-                              <li>• 주 3-4회, 30분 이상의 유산소 운동 권장</li>
-                              <li>• 나트륨 섭취량을 하루 2,300mg 이하로 제한</li>
-                              <li>• 금연 및 금주 권장</li>
-                            </ul>
-                          </div>
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <h4 className="font-medium text-blue-800 mb-2">정기 검진</h4>
-                            <ul className="text-sm text-blue-700 space-y-1">
-                              <li>• 3개월 후 혈압 재측정 권장</li>
-                              <li>• 6개월 후 콜레스테롤 수치 재검사</li>
-                              <li>• 연 1회 종합건강검진 권장</li>
-                            </ul>
-                          </div>
-                        </CardContent>
-                      </Card>
+                <div className="h-full flex flex-col">
+                  {/* Results Panel Header */}
+                  <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
+                    <div className="flex items-center justify-between">
+                      {!isResultPanelCollapsed && (
+                        <h2 className="text-lg font-semibold text-gray-900">분석 결과</h2>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setIsResultPanelCollapsed(!isResultPanelCollapsed)}
+                        className="text-gray-500 hover:text-gray-700 p-1"
+                      >
+                        {isResultPanelCollapsed ? (
+                          <ChevronLeft className="w-4 h-4" />
+                        ) : (
+                          <ChevronRight className="w-4 h-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
-                )}
+
+                  {/* Results Content */}
+                  {!isResultPanelCollapsed && (
+                    <div className="flex-1 p-4 overflow-y-auto">
+                      <AnalysisResults
+                        isAnalyzing={isAnalyzing}
+                        analysisData={analysisData}
+                        hasError={!!analysisError}
+                        errorMessage={analysisError || undefined}
+                        progress={analysisProgress}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </>
           )}

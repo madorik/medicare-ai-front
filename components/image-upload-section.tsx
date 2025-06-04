@@ -1,26 +1,282 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Upload, FileText, Camera, Loader2 } from "lucide-react"
+import { Upload, FileText, Camera, Loader2, AlertCircle, Info } from "lucide-react"
 
-export default function ImageUploadSection() {
+interface ImageUploadSectionProps {
+  onAnalysisStart: () => void
+  onAnalysisResult: (data: string, tokenCount?: number, progress?: number) => void
+  onAnalysisComplete: () => void
+  onError: (error: string) => void
+  onStatusUpdate?: (status: string, type?: 'info' | 'warning' | 'error' | 'success') => void
+}
+
+interface SupportedFormat {
+  extension: string
+  mimeType: string
+  description: string
+  maxSize: number
+}
+
+export default function ImageUploadSection({ 
+  onAnalysisStart, 
+  onAnalysisResult, 
+  onAnalysisComplete, 
+  onError, 
+  onStatusUpdate 
+}: ImageUploadSectionProps) {
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadedFile, setUploadedFile] = useState<string | null>(null)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [supportedFormats, setSupportedFormats] = useState<SupportedFormat[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // API URL 환경변수 설정
+  const backendURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9001'
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      setIsUploading(true)
-      // 시뮬레이션을 위한 지연
-      setTimeout(() => {
-        setUploadedFile(file.name)
-        setIsUploading(false)
-      }, 2000)
+  // 지원 형식 조회
+  useEffect(() => {
+    fetchSupportedFormats()
+  }, [])
+
+  const fetchSupportedFormats = async () => {
+    try {
+      const response = await fetch(`${backendURL}/api/medical/supported-formats`)
+      if (response.ok) {
+        const data = await response.json()
+        // 응답이 배열인지 확인
+        if (Array.isArray(data)) {
+          setSupportedFormats(data)
+        } else {
+          console.warn('지원 형식 응답이 배열이 아닙니다:', data)
+          setDefaultFormats()
+        }
+      } else {
+        console.warn('지원 형식 조회 실패:', response.status)
+        setDefaultFormats()
+      }
+    } catch (error) {
+      console.error('지원 형식 조회 실패:', error)
+      setDefaultFormats()
     }
+  }
+
+  const setDefaultFormats = () => {
+    // 기본값 설정
+    setSupportedFormats([
+      { extension: 'JPG', mimeType: 'image/jpeg', description: '처방전', maxSize: 5 * 1024 * 1024 },
+      { extension: 'PNG', mimeType: 'image/png', description: '검사 결과지', maxSize: 5 * 1024 * 1024 },
+      { extension: 'PDF', mimeType: 'application/pdf', description: '진단서', maxSize: 5 * 1024 * 1024 }
+    ])
+  }
+
+  // 파일 크기 검증 (5MB = 5 * 1024 * 1024 bytes)
+  const validateFile = (file: File): boolean => {
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    
+    if (file.size > maxSize) {
+      setError('파일 크기는 5MB를 초과할 수 없습니다.')
+      return false
+    }
+    
+    // supportedFormats가 유효한 배열인지 확인
+    if (supportedFormats && Array.isArray(supportedFormats) && supportedFormats.length > 0) {
+      const allowedTypes = supportedFormats.map(format => format.mimeType)
+      if (!allowedTypes.includes(file.type)) {
+        const supportedExtensions = supportedFormats.map(f => f.extension).join(', ')
+        setError(`${supportedExtensions} 파일만 업로드 가능합니다.`)
+        return false
+      }
+    } else {
+      // 기본 타입 검증
+      const defaultAllowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
+      if (!defaultAllowedTypes.includes(file.type)) {
+        setError('JPG, PNG, PDF 파일만 업로드 가능합니다.')
+        return false
+      }
+    }
+    
+    return true
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setError(null)
+    
+    if (!validateFile(file)) {
+      return
+    }
+
+    setIsUploading(true)
+    setUploadedFile(file)
+    onAnalysisStart()
+
+    try {
+      // FormData로 파일 준비 (서버에서 'medicalFile' 필드명 사용)
+      const formData = new FormData()
+      formData.append('medicalFile', file)
+
+      // 파일 업로드 및 SSE 연결 시작
+      const response = await fetch(`${backendURL}/api/medical/analyze`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`서버 오류: ${response.status} ${response.statusText}`)
+      }
+
+      // SSE 응답이므로 즉시 스트림 연결 시작
+      startSSEConnection(response)
+
+    } catch (error) {
+      console.error('업로드 오류:', error)
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
+      setError(errorMessage)
+      onError(errorMessage)
+      setIsUploading(false)
+    }
+  }
+
+  const startSSEConnection = (response: Response) => {
+    if (!response.body) {
+      setError('SSE 스트림을 받을 수 없습니다.')
+      onError('SSE 스트림을 받을 수 없습니다.')
+      setIsUploading(false)
+      return
+    }
+
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let accumulatedText = ''
+
+    const readStream = async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          
+          if (done) {
+            setIsUploading(false)
+            onAnalysisComplete()
+            break
+          }
+
+          const chunk = decoder.decode(value, { stream: true })
+          const lines = chunk.split('\n')
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6))
+                
+                switch (data.type) {
+                  case 'connected':
+                    console.log('분석 스트림 연결됨:', data.message)
+                    onStatusUpdate?.(data.message, 'info')
+                    break
+                    
+                  case 'status':
+                    onStatusUpdate?.(data.message, 'info')
+                    break
+                    
+                  case 'chunk':
+                    // 누적된 텍스트로 실시간 업데이트
+                    accumulatedText = data.accumulated || data.content
+                    onAnalysisResult(accumulatedText, data.tokenCount, data.progress)
+                    break
+                    
+                  case 'progress':
+                    // 기존 방식 호환
+                    accumulatedText += (accumulatedText ? '\n' : '') + data.content
+                    onAnalysisResult(accumulatedText, data.tokenCount, data.progress)
+                    break
+                    
+                  case 'complete':
+                    // 최종 결과 처리
+                    if (data.result) {
+                      if (data.result.format === 'text') {
+                        onAnalysisResult(data.result.analysis, data.result.tokenCount, 100)
+                      } else {
+                        onAnalysisResult(accumulatedText, data.tokenCount, 100)
+                      }
+                    } else {
+                      onAnalysisResult(accumulatedText + (accumulatedText ? '\n' : '') + data.content, data.tokenCount, 100)
+                    }
+                    setIsUploading(false)
+                    onAnalysisComplete()
+                    onStatusUpdate?.(data.message || '분석이 완료되었습니다.', 'success')
+                    return
+                    
+                  case 'error':
+                    throw new Error(data.message || '분석 중 오류가 발생했습니다.')
+                    
+                  case 'warning':
+                    onStatusUpdate?.(data.message, 'warning')
+                    break
+                    
+                  default:
+                    console.log('알 수 없는 SSE 이벤트:', data.type, data)
+                    break
+                }
+              } catch (parseError) {
+                console.warn('SSE 데이터 파싱 실패:', parseError, line)
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('SSE 스트림 읽기 오류:', error)
+        const errorMessage = error instanceof Error ? error.message : 'SSE 연결 중 오류가 발생했습니다.'
+        setError(errorMessage)
+        onError(errorMessage)
+        setIsUploading(false)
+      }
+    }
+
+    readStream()
+  }
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+  }
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    const files = event.dataTransfer.files
+    if (files[0]) {
+      // 가상의 input 이벤트 생성
+      const mockEvent = {
+        target: { files: [files[0]] }
+      } as React.ChangeEvent<HTMLInputElement>
+      handleFileUpload(mockEvent)
+    }
+  }
+
+  const resetUpload = () => {
+    setUploadedFile(null)
+    setError(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const getAcceptTypes = () => {
+    if (!supportedFormats || !Array.isArray(supportedFormats) || supportedFormats.length === 0) {
+      return '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf'
+    }
+    return supportedFormats.map(format => format.mimeType).join(',')
+  }
+
+  const getFileExtensions = () => {
+    if (!supportedFormats || !Array.isArray(supportedFormats) || supportedFormats.length === 0) {
+      return '.jpg,.jpeg,.png,.pdf'
+    }
+    return supportedFormats.map(format => `.${format.extension.toLowerCase()}`).join(',')
   }
 
   return (
@@ -30,28 +286,46 @@ export default function ImageUploadSection() {
           <Upload className="w-5 h-5" />
           진료 기록 업로드
         </CardTitle>
-        <CardDescription>처방전, 검사 결과지, 진단서 등의 이미지를 업로드해주세요</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-emerald-400 transition-colors">
-          {isUploading ? (
+        <div 
+          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-emerald-400 transition-colors"
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+        >
+          {error ? (
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <p className="text-red-600 font-medium">{error}</p>
+              <Button
+                variant="outline"
+                onClick={resetUpload}
+              >
+                다시 시도
+              </Button>
+            </div>
+          ) : isUploading ? (
             <div className="flex flex-col items-center space-y-4">
               <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-              <p className="text-gray-600">파일을 분석하고 있습니다...</p>
+              <p className="text-gray-600">파일을 업로드하고 분석하고 있습니다...</p>
+              <p className="text-sm text-gray-500">실시간으로 분석 결과가 표시됩니다</p>
             </div>
           ) : uploadedFile ? (
             <div className="flex flex-col items-center space-y-4">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <FileText className="w-6 h-6 text-green-600" />
               </div>
-              <p className="text-green-600 font-medium">업로드 완료: {uploadedFile}</p>
+              <div>
+                <p className="text-green-600 font-medium">업로드 완료: {uploadedFile.name}</p>
+                <p className="text-sm text-gray-500">
+                  크기: {(uploadedFile.size / 1024 / 1024).toFixed(2)}MB
+                </p>
+              </div>
               <Button
                 variant="outline"
-                onClick={() => {
-                  setUploadedFile(null)
-                  const input = document.getElementById("file-upload") as HTMLInputElement
-                  if (input) input.value = ""
-                }}
+                onClick={resetUpload}
               >
                 다른 파일 업로드
               </Button>
@@ -63,38 +337,29 @@ export default function ImageUploadSection() {
               </div>
               <div>
                 <p className="text-lg font-medium text-gray-900 mb-2">파일을 드래그하거나 클릭하여 업로드</p>
-                <p className="text-sm text-gray-500">JPG, PNG, PDF 파일 지원 (최대 10MB)</p>
+                <p className="text-sm text-gray-500">
+                  {supportedFormats && Array.isArray(supportedFormats) && supportedFormats.length > 0
+                    ? `${supportedFormats.map(f => f.extension).join(', ')} 파일 지원 (최대 5MB)`
+                    : 'JPG, PNG, PDF 파일 지원 (최대 5MB)'
+                  }
+                </p>
               </div>
               <input
+                ref={fileInputRef}
                 id="file-upload"
                 type="file"
-                accept="image/*,.pdf"
+                accept={getAcceptTypes()}
                 onChange={handleFileUpload}
                 className="hidden"
               />
               <Button
-                onClick={() => document.getElementById("file-upload")?.click()}
+                onClick={() => fileInputRef.current?.click()}
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
                 파일 선택하기
               </Button>
             </div>
           )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="flex items-center space-x-2 text-gray-600">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-            <span>처방전</span>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-            <span>검사 결과지</span>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-            <span>진단서</span>
-          </div>
         </div>
       </CardContent>
     </Card>

@@ -4,137 +4,221 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain } from "lucide-react"
+import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain, Clock, Loader2, Activity, Download, Share, Calendar } from "lucide-react"
+import { useEffect, useRef } from "react"
 
-export default function AnalysisResults() {
+interface AnalysisResultsProps {
+  isAnalyzing: boolean
+  analysisData: string
+  hasError: boolean
+  errorMessage?: string
+  progress?: number
+}
+
+export default function AnalysisResults({ 
+  isAnalyzing, 
+  analysisData, 
+  hasError, 
+  errorMessage,
+  progress = 0
+}: AnalysisResultsProps) {
+  const streamingRef = useRef<HTMLDivElement>(null)
+
+  // 자동 스크롤 처리
+  useEffect(() => {
+    if (streamingRef.current) {
+      streamingRef.current.scrollTop = streamingRef.current.scrollHeight
+    }
+  }, [analysisData])
+
+  // 분석 데이터를 라인별로 분리하여 실시간 스트리밍 효과 구현
+  const formatAnalysisData = (data: string) => {
+    if (!data) return []
+    
+    // 각 라인을 배열로 분리하고 빈 라인 제거
+    return data.split('\n').filter(line => line.trim().length > 0)
+  }
+
+  const analysisLines = formatAnalysisData(analysisData)
+
+  if (hasError) {
+    return (
+      <div className="space-y-4">
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <CardTitle className="text-red-800">분석 오류</CardTitle>
+                <CardDescription className="text-red-600">
+                  {errorMessage || '알 수 없는 오류가 발생했습니다.'}
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!isAnalyzing && !analysisData) {
+    return (
+      <div className="space-y-4">
+        <Card className="border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100">
+          <CardHeader className="text-center py-12">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Brain className="w-8 h-8 text-gray-400" />
+            </div>
+            <CardTitle className="text-gray-600 text-lg">AI 분석 대기 중</CardTitle>
+            <CardDescription className="text-gray-500 mt-2">
+              파일을 업로드하면 AI 분석이 시작됩니다
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      {/* 분석 개요 */}
-      <Card>
+    <div className="space-y-6">
+      {/* 분석 상태 헤더 */}
+      <Card className="border-0 shadow-lg bg-gradient-to-r from-emerald-50 to-blue-50">
         <CardHeader>
           <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                <Brain className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <CardTitle className="text-gray-800">AI 분석 결과</CardTitle>
+                <CardDescription className="text-gray-600 mt-1">
+                  {isAnalyzing 
+                    ? "실시간으로 분석 결과가 업데이트됩니다"
+                    : "업로드된 진료 기록을 분석한 결과입니다"
+                  }
+                </CardDescription>
+              </div>
+            </div>
             <div className="flex items-center space-x-2">
-              <Brain className="w-5 h-5 text-emerald-600" />
-              <CardTitle>AI 분석 결과</CardTitle>
+              {isAnalyzing ? (
+                <Badge className="bg-blue-500 text-white border-0 shadow-sm">
+                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                  분석 중
+                </Badge>
+              ) : (
+                <Badge className="bg-emerald-500 text-white border-0 shadow-sm">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  분석 완료
+                </Badge>
+              )}
             </div>
-            <Badge className="bg-green-100 text-green-800">분석 완료</Badge>
           </div>
-          <CardDescription>업로드된 진료 기록을 분석한 결과입니다</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <div className="text-2xl font-bold text-blue-600">3</div>
-              <div className="text-sm text-gray-600">검출된 의학 용어</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">2</div>
-              <div className="text-sm text-gray-600">처방 약물</div>
-            </div>
-            <div className="text-center p-4 bg-orange-50 rounded-lg">
-              <div className="text-2xl font-bold text-orange-600">1</div>
-              <div className="text-sm text-gray-600">주의사항</div>
-            </div>
-          </div>
-        </CardContent>
       </Card>
 
-      {/* 상세 분석 결과 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 진단 정보 */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <FileText className="w-4 h-4" />
-              <span>진단 정보</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start space-x-3">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                <div>
-                  <div className="font-medium">고혈압 (Essential Hypertension)</div>
-                  <div className="text-sm text-gray-600">혈압: 140/90 mmHg</div>
-                  <div className="text-xs text-gray-500 mt-1">정상 범위를 초과하는 혈압 수치가 확인되었습니다.</div>
-                </div>
+      {/* 진행률 */}
+      {isAnalyzing && (
+        <Card className="border-0 shadow-md">
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="flex items-center space-x-2 text-gray-700 font-medium">
+                  <Activity className="w-4 h-4 text-blue-600" />
+                  <span>분석 진행률</span>
+                </span>
+                <span className="text-blue-600 font-semibold">{progress}%</span>
               </div>
-              <Separator />
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
-                <div>
-                  <div className="font-medium">콜레스테롤 수치 주의</div>
-                  <div className="text-sm text-gray-600">총 콜레스테롤: 220 mg/dL</div>
-                  <div className="text-xs text-gray-500 mt-1">권장 수치(200 mg/dL)보다 높습니다.</div>
-                </div>
+              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-3 bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500 ease-out rounded-full" 
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              
+              <div className="flex items-center justify-center text-sm text-gray-600">
+                <span className="animate-pulse flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <span className="ml-2">AI가 열심히 분석하고 있습니다</span>
+                </span>
               </div>
             </div>
           </CardContent>
         </Card>
+      )}
 
-        {/* 처방 약물 */}
-        <Card>
-          <CardHeader>
-            <CardTitle>처방 약물</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="border rounded-lg p-3">
-                <div className="font-medium">아모디핀 (Amlodipine) 5mg</div>
-                <div className="text-sm text-gray-600 mt-1">칼슘채널차단제 - 혈압 강하제</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  <strong>복용법:</strong> 1일 1회, 식후 복용
-                </div>
-                <Button variant="link" size="sm" className="p-0 h-auto text-emerald-600">
-                  상세 정보 보기 <ExternalLink className="w-3 h-3 ml-1" />
-                </Button>
+      {/* 실시간 스트리밍 결과 */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
+          <div className="flex items-center space-x-2">
+            <FileText className="w-5 h-5 text-gray-700" />
+            <CardTitle className="text-gray-800">분석 내용</CardTitle>
+            {isAnalyzing && (
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-emerald-600 font-medium">실시간</span>
               </div>
-              <div className="border rounded-lg p-3">
-                <div className="font-medium">아토르바스타틴 (Atorvastatin) 20mg</div>
-                <div className="text-sm text-gray-600 mt-1">스타틴계 - 콜레스테롤 강하제</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  <strong>복용법:</strong> 1일 1회, 저녁 식후 복용
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {analysisData ? (
+            <div 
+              ref={streamingRef}
+              className="bg-white rounded-b-lg p-6 max-h-96 overflow-y-auto"
+              style={{
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word'
+              }}
+            >
+              <div className="prose prose-gray max-w-none">
+                <div className="text-gray-800 leading-relaxed text-sm">
+                  {analysisData}
                 </div>
-                <Button variant="link" size="sm" className="p-0 h-auto text-emerald-600">
-                  상세 정보 보기 <ExternalLink className="w-3 h-3 ml-1" />
-                </Button>
+                
+                {isAnalyzing && (
+                  <div className="flex items-center space-x-2 text-emerald-600 mt-6 pt-4 border-t border-gray-100">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span className="text-sm font-medium">분석이 계속 진행 중입니다...</span>
+                  </div>
+                )}
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI 권장사항 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>AI 권장사항</CardTitle>
-          <CardDescription>분석 결과를 바탕으로 한 개인 맞춤형 건강 관리 조언</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-            <h4 className="font-medium text-emerald-800 mb-2">생활습관 개선</h4>
-            <ul className="text-sm text-emerald-700 space-y-1">
-              <li>• 주 3-4회, 30분 이상의 유산소 운동 권장</li>
-              <li>• 나트륨 섭취량을 하루 2,300mg 이하로 제한</li>
-              <li>• 금연 및 금주 권장</li>
-            </ul>
-          </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-medium text-blue-800 mb-2">정기 검진</h4>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• 3개월 후 혈압 재측정 권장</li>
-              <li>• 6개월 후 콜레스테롤 수치 재검사</li>
-              <li>• 연 1회 종합건강검진 권장</li>
-            </ul>
-          </div>
+          ) : isAnalyzing ? (
+            <div className="p-8 text-center">
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Loader2 className="w-6 h-6 animate-spin text-gray-600" />
+              </div>
+              <p className="text-gray-600">분석을 시작하고 있습니다...</p>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
-      {/* 액션 버튼 */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button className="bg-emerald-600 hover:bg-emerald-700">전문가 상담 예약하기</Button>
-        <Button variant="outline">상세 리포트 다운로드</Button>
-      </div>
+      {/* 분석 완료 시에만 표시되는 추가 정보 */}
+      {!isAnalyzing && analysisData && (
+        <>
+
+          {/* 액션 버튼 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg h-12">
+              <Calendar className="w-4 h-4 mr-2" />
+              전문가 상담 예약
+            </Button>
+            <Button variant="outline" className="border-2 border-gray-300 hover:border-gray-400 h-12">
+              <Download className="w-4 h-4 mr-2" />
+              리포트 다운로드
+            </Button>
+            <Button variant="outline" className="border-2 border-gray-300 hover:border-gray-400 h-12">
+              <Share className="w-4 h-4 mr-2" />
+              결과 공유하기
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
