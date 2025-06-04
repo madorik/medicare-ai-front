@@ -2,9 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import ImageUploadSection from "@/components/image-upload-section"
 import AnalysisResults from "@/components/analysis-results"
 import { useAuth } from "@/contexts/AuthContext"
@@ -42,9 +40,7 @@ export default function HomePage() {
   const router = useRouter()
   
   // API 서버 설정
-  const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
-    ? 'http://localhost:9001' 
-    : ''
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9001'
 
   // 파일 업로드 및 분석 관련 상태
   const [isAnalyzing, setIsAnalyzing] = useState(false)
