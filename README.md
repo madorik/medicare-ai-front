@@ -64,6 +64,34 @@ pnpm dev
 
 ### 백엔드 서버 실행
 
+#### 방법 1: 실시간 스트리밍 테스트 서버
+
+1. 새 터미널에서 서버 디렉토리 생성
+```bash
+mkdir server && cd server
+```
+
+2. 서버 설정
+```bash
+npm init -y
+npm install express multer cors uuid
+```
+
+3. 실시간 스트리밍 서버 파일 복사
+```bash
+# 프로젝트 루트의 server-example-streaming.js를 server.js로 복사
+cp ../server-example-streaming.js ./server.js
+```
+
+4. 서버 실행
+```bash
+node server.js
+```
+
+이 서버는 **실시간 텍스트 스트리밍**을 시뮬레이션하여 각 분석 단계마다 0.5-1.5초 간격으로 텍스트를 추가로 전송합니다.
+
+#### 방법 2: 기본 서버 (server-example.md 참조)
+
 1. 새 터미널에서 서버 디렉토리 생성
 ```bash
 mkdir server && cd server

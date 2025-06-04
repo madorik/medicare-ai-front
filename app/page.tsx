@@ -65,6 +65,12 @@ export default function HomePage() {
 
   // 실시간 분석 결과 핸들러
   const handleAnalysisResult = (data: string, tokenCount?: number, progress?: number) => {
+    console.log('분석 결과 업데이트:', {
+      textLength: data.length,
+      progress: progress,
+      preview: data.substring(0, 50) + (data.length > 50 ? '...' : '')
+    })
+    
     setAnalysisData(data)
     if (progress !== undefined) setAnalysisProgress(progress)
   }

@@ -161,6 +161,7 @@ export default function ImageUploadSection({
           const { done, value } = await reader.read()
           
           if (done) {
+            console.log('SSE 스트림 완료')
             setIsUploading(false)
             onAnalysisComplete()
             break
@@ -173,6 +174,7 @@ export default function ImageUploadSection({
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6))
+                console.log('SSE 데이터 수신:', data.type, data)
                 
                 switch (data.type) {
                   case 'connected':
@@ -181,32 +183,55 @@ export default function ImageUploadSection({
                     break
                     
                   case 'status':
+                    console.log('상태 업데이트:', data.message)
                     onStatusUpdate?.(data.message, 'info')
                     break
                     
                   case 'chunk':
-                    // 누적된 텍스트로 실시간 업데이트
-                    accumulatedText = data.accumulated || data.content
-                    onAnalysisResult(accumulatedText, data.tokenCount, data.progress)
+                    // 실시간 텍스트 청크 - 서버에서 부분 텍스트를 보내는 경우
+                    if (data.content) {
+                      accumulatedText += data.content
+                      console.log('텍스트 청크 추가:', data.content)
+                      console.log('누적된 텍스트 길이:', accumulatedText.length)
+                      onAnalysisResult(accumulatedText, undefined, data.progress)
+                    }
+                    // 서버에서 누적된 전체 텍스트를 보내는 경우
+                    else if (data.accumulated) {
+                      accumulatedText = data.accumulated
+                      console.log('누적 텍스트 업데이트:', accumulatedText.length)
+                      onAnalysisResult(accumulatedText, undefined, data.progress)
+                    }
                     break
                     
                   case 'progress':
-                    // 기존 방식 호환
-                    accumulatedText += (accumulatedText ? '\n' : '') + data.content
-                    onAnalysisResult(accumulatedText, data.tokenCount, data.progress)
+                    // 진행 상황과 함께 텍스트 추가
+                    if (data.content) {
+                      // 새로운 내용이 있으면 누적
+                      accumulatedText += (accumulatedText ? '\n' : '') + data.content
+                      console.log('진행 상황 텍스트 추가:', data.content)
+                      console.log('현재 누적 텍스트:', accumulatedText.substring(0, 100) + '...')
+                      onAnalysisResult(accumulatedText, undefined, data.progress)
+                    } else {
+                      // 텍스트 없이 진행률만 업데이트
+                      onAnalysisResult(accumulatedText, undefined, data.progress)
+                    }
                     break
                     
                   case 'complete':
                     // 최종 결과 처리
                     if (data.result) {
                       if (data.result.format === 'text') {
-                        onAnalysisResult(data.result.analysis, data.result.tokenCount, 100)
+                        accumulatedText = data.result.analysis
+                        onAnalysisResult(accumulatedText, undefined, 100)
                       } else {
-                        onAnalysisResult(accumulatedText, data.tokenCount, 100)
+                        onAnalysisResult(accumulatedText, undefined, 100)
                       }
-                    } else {
-                      onAnalysisResult(accumulatedText + (accumulatedText ? '\n' : '') + data.content, data.tokenCount, 100)
+                    } else if (data.content) {
+                      accumulatedText += (accumulatedText ? '\n' : '') + data.content
+                      onAnalysisResult(accumulatedText, undefined, 100)
                     }
+                    
+                    console.log('분석 완료, 최종 텍스트 길이:', accumulatedText.length)
                     setIsUploading(false)
                     onAnalysisComplete()
                     onStatusUpdate?.(data.message || '분석이 완료되었습니다.', 'success')
