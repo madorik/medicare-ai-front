@@ -52,7 +52,9 @@ NEXT_PUBLIC_API_URL=http://localhost:9001
 # 예: NEXT_PUBLIC_API_URL=https://api.medicare-ai.com
 ```
 
-### 프론트엔드 실행
+### 로컬 개발 환경
+
+#### 프론트엔드 실행
 
 ```bash
 # 의존성 설치
@@ -109,6 +111,88 @@ npm install express multer cors uuid
 ```bash
 node server.js
 ```
+
+## 🚀 Vercel 배포
+
+### 1. Vercel 계정 및 프로젝트 설정
+
+1. [Vercel](https://vercel.com)에 GitHub 계정으로 로그인
+2. "New Project" 클릭
+3. GitHub 리포지토리 선택 및 Import
+
+### 2. 환경변수 설정
+
+Vercel 대시보드에서 프로젝트 → Settings → Environment Variables에서 다음을 추가:
+
+```
+NEXT_PUBLIC_API_URL = https://your-backend-server.com
+```
+
+**중요**: `your-backend-server.com`을 실제 백엔드 서버 URL로 변경하세요.
+
+### 3. 배포
+
+```bash
+# GitHub에 푸시하면 자동 배포
+git add .
+git commit -m "feat: Vercel 배포 설정"
+git push origin main
+```
+
+### 4. 백엔드 서버 배포
+
+프론트엔드와 별도로 백엔드 서버를 배포해야 합니다:
+
+#### Railway 배포 (추천)
+```bash
+# Railway CLI 설치
+npm install -g @railway/cli
+
+# 로그인 후 서버 디렉토리에서
+cd server
+railway login
+railway init
+railway up
+```
+
+#### Render 배포
+1. [Render](https://render.com)에서 새 Web Service 생성
+2. GitHub 리포지토리 연결
+3. Build Command: `npm install`
+4. Start Command: `node server.js`
+
+#### Heroku 배포
+```bash
+# Heroku CLI 설치 후
+cd server
+heroku create your-app-name
+git init
+git add .
+git commit -m "Initial commit"
+heroku git:remote -a your-app-name
+git push heroku main
+```
+
+### 5. CORS 설정 업데이트
+
+백엔드 서버의 CORS 설정에 Vercel 도메인을 추가:
+
+```javascript
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'https://your-vercel-app.vercel.app'  // 추가
+  ],
+  credentials: true
+}));
+```
+
+### 6. 배포 완료 확인
+
+- ✅ 프론트엔드: `https://your-app.vercel.app`
+- ✅ 백엔드: `https://your-backend-server.com`
+- ✅ 파일 업로드 테스트
+- ✅ 실시간 SSE 스트리밍 확인
 
 ## 🌐 API 명세
 
