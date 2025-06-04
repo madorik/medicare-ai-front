@@ -38,9 +38,14 @@ interface Message {
 }
 
 export default function HomePage() {
-  const { user, logout, isLoading } = useAuth()
+  const { user, logout, isLoading, token } = useAuth()
   const router = useRouter()
   
+  // API 서버 설정
+  const API_BASE_URL = typeof window !== 'undefined' && window.location.hostname === 'localhost' 
+    ? 'http://localhost:9001' 
+    : ''
+
   // 파일 업로드 및 분석 관련 상태
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisData, setAnalysisData] = useState("")
@@ -59,6 +64,29 @@ export default function HomePage() {
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const [resultPanelWidth, setResultPanelWidth] = useState(600)
   const [isResizingResult, setIsResizingResult] = useState(false)
+
+  // 채팅 관련 상태들
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
+  const [isChatMode, setIsChatMode] = useState(false)
+
+  // URL 파라미터 확인해서 채팅 모드 설정
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const chatParam = urlParams.get('chat')
+    
+    if (chatParam === 'true') {
+      setIsChatMode(true)
+      setShowAnalysis(true)
+      // 초기 AI 환영 메시지 추가
+      if (messages.length === 0) {
+        addMessage(
+          "assistant",
+          "안녕하세요! 의료 상담 AI입니다. 🩺\n\n건강과 관련된 궁금한 점이나 증상에 대해 문의해주세요. 정확한 의학 정보를 바탕으로 도움을 드리겠습니다.\n\n⚠️ 응급상황 시에는 즉시 119에 신고하거나 가까운 응급실을 방문하세요."
+        )
+      }
+    }
+  }, [])
 
   // 분석 시작 핸들러
   const handleAnalysisStart = () => {
@@ -130,36 +158,219 @@ export default function HomePage() {
   }
 
   // 메시지 전송
-  const handleSendMessage = () => {
-    if (inputMessage.trim() === "") return
+  const handleSendMessage = async () => {
+    const currentMessage = inputMessage.trim()
+    if (!currentMessage || isStreaming) return
+
+    // 메시지 길이 검증
+    if (currentMessage.length > 100) {
+      addErrorMessage('메시지는 100자 이하로 입력해주세요.')
+      return
+    }
 
     // 사용자 메시지 추가
-    addMessage("user", inputMessage)
+    addMessage('user', currentMessage)
     setInputMessage("")
 
-    // AI 응답 시뮬레이션 (실제로는 API 호출)
-    setTimeout(() => {
-      let response = ""
+    // 전송 버튼 비활성화 및 타이핑 인디케이터 표시
+    setIsStreaming(true)
+    setIsTyping(true)
 
-      if (inputMessage.includes("고혈압")) {
-        response =
-          "고혈압은 혈압이 정상 범위보다 높은 상태를 의미합니다. 분석 결과 혈압이 140/90 mmHg로 측정되어 고혈압으로 진단되었습니다. 일반적으로 정상 혈압은 120/80 mmHg 이하입니다. 규칙적인 운동, 저염식 식단, 처방된 약물 복용이 중요합니다."
-      } else if (inputMessage.includes("콜레스테롤")) {
-        response =
-          "콜레스테롤 수치가 220 mg/dL로 측정되어 정상 범위(200 mg/dL 이하)보다 약간 높습니다. 포화지방과 트랜스지방 섭취를 줄이고, 오메가-3 지방산이 풍부한 식품을 섭취하는 것이 좋습니다. 처방된 아토르바스타틴은 콜레스테롤 수치를 낮추는데 도움이 됩니다."
-      } else if (inputMessage.includes("약") || inputMessage.includes("약물") || inputMessage.includes("처방")) {
-        response =
-          "현재 처방된 약물은 아모디핀(Amlodipine) 5mg과 아토르바스타틴(Atorvastatin) 20mg입니다. 아모디핀은 혈압을 낮추는 약물로 1일 1회 식후 복용하고, 아토르바스타틴은 콜레스테롤 수치를 낮추는 약물로 1일 1회 저녁 식후 복용하는 것이 권장됩니다."
-      } else if (inputMessage.includes("운동") || inputMessage.includes("식이") || inputMessage.includes("생활")) {
-        response =
-          "생활습관 개선을 위해 주 3-4회, 30분 이상의 유산소 운동을 권장합니다. 나트륨 섭취량을 하루 2,300mg 이하로 제한하고, 과일, 채소, 통곡물, 저지방 단백질 위주의 식단을 유지하세요. 금연과 금주도 혈압 관리에 도움이 됩니다."
-      } else {
-        response =
-          "분석 결과에 따르면 고혈압과 콜레스테롤 수치 상승이 확인되었습니다. 처방된 약물을 꾸준히 복용하고, 3개월 후 혈압 재측정과 6개월 후 콜레스테롤 수치 재검사를 권장합니다. 더 구체적인 질문이 있으시면 말씀해주세요."
+    try {
+      await streamMessage(currentMessage)
+    } catch (error) {
+      console.error('메시지 전송 오류:', error)
+      addErrorMessage('메시지 전송 중 오류가 발생했습니다.')
+    } finally {
+      setIsStreaming(false)
+      setIsTyping(false)
+    }
+  }
+
+  // SSE 스트리밍 메시지 (9001 서버 연동)
+  const streamMessage = async (message: string, retryCount = 0) => {
+    // 최대 재시도 횟수 설정
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 2000; // 2초
+
+    try {
+      // AuthContext의 token 사용 (localStorage fallback)
+      const authToken = token || localStorage.getItem('auth_token')
+      
+      if (!authToken) {
+        throw new Error('인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.')
+      }
+      
+      // 채팅 히스토리를 OpenAI 형식으로 변환
+      const chatHistory = messages.slice(-10).map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.content || '' // Ensure content is a non-null string
+      }))
+      
+      console.log('전송할 채팅 히스토리:', chatHistory)
+      console.log('현재 메시지:', message)
+      
+      const response = await fetch(`${API_BASE_URL}/chat/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          message: message,
+          chatHistory: chatHistory
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('API 응답 오류:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        })
+        throw new Error(`스트리밍 요청 실패: ${response.status} - ${errorText}`)
       }
 
-      addMessage("assistant", response)
-    }, 1000)
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      
+      if (!reader) {
+        throw new Error('스트림을 읽을 수 없습니다.')
+      }
+      
+      // AI 메시지 컨테이너 생성
+      let assistantMessageId = ''
+      let fullResponse = ''
+      let isEmergency = false
+
+      try {
+        while (true) {
+          const { done, value } = await reader.read()
+          
+          if (done) break
+          
+          const chunk = decoder.decode(value)
+          const lines = chunk.split('\n')
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6))
+                
+                if (data.error) {
+                  console.error('서버에서 받은 에러:', data.error)
+                  if (!data.error.includes('invalid content')) {
+                    addErrorMessage(data.error)
+                  }
+                  return
+                }
+                
+                if (data.isEmergency && !isEmergency) {
+                  isEmergency = true
+                  // 응급 상황 메시지로 변경
+                  if (assistantMessageId) {
+                    setMessages(prev => prev.map(msg => 
+                      msg.id === assistantMessageId 
+                        ? { ...msg, content: "🚨 응급상황이 감지되었습니다! 즉시 119에 신고하거나 응급실을 방문하세요!\n\n" + fullResponse }
+                        : msg
+                    ))
+                  }
+                }
+                
+                if (data.content) {
+                  fullResponse += data.content
+                  
+                  // 첫 번째 컨텐츠일 때 AI 메시지 생성
+                  if (!assistantMessageId) {
+                    const newMessage: Message = {
+                      id: Date.now().toString(),
+                      role: "assistant",
+                      content: isEmergency ? "🚨 응급상황이 감지되었습니다! 즉시 119에 신고하거나 응급실을 방문하세요!\n\n" + fullResponse : fullResponse,
+                      timestamp: new Date(),
+                    }
+                    setMessages(prev => [...prev, newMessage])
+                    assistantMessageId = newMessage.id
+                  } else {
+                    // 기존 메시지 업데이트
+                    setMessages(prev => prev.map(msg => 
+                      msg.id === assistantMessageId 
+                        ? { ...msg, content: isEmergency ? "🚨 응급상황이 감지되었습니다! 즉시 119에 신고하거나 응급실을 방문하세요!\n\n" + fullResponse : fullResponse }
+                        : msg
+                    ))
+                  }
+                } else {
+                  console.warn('Received null or undefined content:', data);
+                  addErrorMessage('Received invalid content from server. Please try again.');
+                }
+                
+                if (data.done) {
+                  // 응답 완료
+                  console.log('채팅 응답 완료')
+                  setIsTyping(false)
+                  return
+                }
+
+                // Handle invalid content error gracefully
+                if (data.error && data.error.includes('invalid content')) {
+                  console.warn('Invalid content received, not displaying in chat.')
+                  return
+                }
+              } catch (e) {
+                // JSON 파싱 오류 무시하되 로깅은 유지
+                console.warn('JSON 파싱 오류 (무시됨):', {
+                  line: line,
+                  error: e instanceof Error ? e.message : String(e)
+                })
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock()
+      }
+    } catch (error) {
+      console.error('채팅 오류:', error)
+      
+      // 상세한 에러 정보 로깅
+      if (error instanceof Error) {
+        console.error('에러 상세:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        })
+      }
+      
+      // 인증 오류인 경우 로그인 페이지로 리다이렉트
+      if (error instanceof Error && (error.message.includes('인증') || error.message.includes('401') || error.message.includes('403'))) {
+        addErrorMessage("인증이 만료되었습니다. 다시 로그인해주세요.")
+        setTimeout(() => {
+          router.push('/login')
+        }, 2000)
+      } else if (retryCount < MAX_RETRIES) {
+        // 재시도 로직
+        console.warn(`재시도 중... (${retryCount + 1}/${MAX_RETRIES})`);
+        setTimeout(() => streamMessage(message, retryCount + 1), RETRY_DELAY);
+      } else {
+        // 구체적인 에러 메시지 표시
+        const errorMsg = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다."
+        addMessage("assistant", `⚠️ 오류: ${errorMsg}`)
+      }
+    } finally {
+      setIsStreaming(false)
+      setIsTyping(false)
+    }
+  }
+
+  // 에러 메시지 추가
+  const addErrorMessage = (errorText: string) => {
+    const errorMessage: Message = {
+      id: Date.now().toString(),
+      role: "assistant",
+      content: `⚠️ 오류: ${errorText}`,
+      timestamp: new Date(),
+    }
+    setMessages(prev => [...prev, errorMessage])
   }
 
   // 리사이징 이벤트 핸들러
@@ -261,16 +472,38 @@ export default function HomePage() {
           <div className="flex-1 p-4">
             {!isSidebarCollapsed && (
               <div className="space-y-4">
-                <Button
-                  onClick={resetAnalysis}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center space-x-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>새로운 분석</span>
-                </Button>
-                <div className="text-sm text-gray-400">
-                  <p>파일 분석이 완료되었습니다. 분석 결과에 대해 AI와 대화해보세요.</p>
-                </div>
+                {isChatMode ? (
+                  <>
+                    <Button
+                      onClick={() => {
+                        setIsChatMode(false)
+                        setShowAnalysis(false)
+                        setMessages([])
+                        router.push('/')
+                      }}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center space-x-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>파일 분석</span>
+                    </Button>
+                    <div className="text-sm text-gray-400">
+                      <p>AI와 직접 의료 상담을 하고 있습니다. 궁금한 건강 정보를 물어보세요.</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={resetAnalysis}
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center space-x-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>새로운 분석</span>
+                    </Button>
+                    <div className="text-sm text-gray-400">
+                      <p>파일 분석이 완료되었습니다. 분석 결과에 대해 AI와 대화해보세요.</p>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -294,13 +527,19 @@ export default function HomePage() {
                 <span className="text-xl font-bold text-gray-900">MediCare AI</span>
               </div>
               {showAnalysis && (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  분석 완료
+                <Badge variant="outline" className={isChatMode ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-green-50 text-green-700 border-green-200"}>
+                  {isChatMode ? "AI 채팅" : "분석 완료"}
                 </Badge>
               )}
             </div>
             <div className="flex items-center space-x-4">
               <nav className="hidden md:flex items-center space-x-6">
+                <button 
+                  onClick={() => router.push('/?chat=true')}
+                  className="text-gray-600 hover:text-emerald-600 transition-colors font-medium"
+                >
+                  AI 채팅
+                </button>
                 <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">
                   서비스
                 </a>
@@ -420,7 +659,19 @@ export default function HomePage() {
                           }`}
                         >
                           {message.role === "user" ? (
-                            <User className="w-5 h-5 text-emerald-600" />
+                            user.profileImage ? (
+                              <img
+                                src={user.profileImage}
+                                alt="프로필"
+                                className="w-8 h-8 rounded-full border border-gray-300"
+                                onError={(e) => {
+                                  // 이미지 로드 실패 시 기본 아바타로 교체
+                                  e.currentTarget.style.display = 'none'
+                                }}
+                              />
+                            ) : (
+                              <User className="w-5 h-5 text-emerald-600" />
+                            )
                           ) : (
                             <Bot className="w-5 h-5 text-blue-600" />
                           )}
@@ -441,6 +692,27 @@ export default function HomePage() {
                       </div>
                     </div>
                   ))}
+
+                  {/* 타이핑 인디케이터 */}
+                  {isTyping && (
+                    <div className="flex justify-start">
+                      <div className="flex items-start space-x-2 max-w-3xl">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-100">
+                          <Bot className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="p-3 rounded-lg bg-gray-100 text-gray-900">
+                          <div className="flex items-center space-x-1">
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                            <span className="text-xs text-gray-500 ml-2">AI가 응답을 작성 중입니다...</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -452,21 +724,31 @@ export default function HomePage() {
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="진료 결과에 대해 질문해보세요..."
+                      placeholder={isStreaming ? "AI가 응답하는 동안 기다려주세요..." : "진료 결과에 대해 질문해보세요..."}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none h-12 max-h-32"
                       rows={1}
+                      disabled={isStreaming}
                     />
                     <Button
                       size="sm"
                       variant="ghost"
                       className="absolute right-2 top-1/2 transform -translate-y-1/2"
                       onClick={() => {}}
+                      disabled={isStreaming}
                     >
                       <Mic className="w-4 h-4" />
                     </Button>
                   </div>
-                  <Button className="bg-emerald-600 hover:bg-emerald-700" onClick={handleSendMessage}>
-                    <Send className="w-4 h-4" />
+                  <Button 
+                    className="bg-emerald-600 hover:bg-emerald-700" 
+                    onClick={handleSendMessage}
+                    disabled={isStreaming || inputMessage.trim() === ""}
+                  >
+                    {isStreaming ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
                 <div className="text-xs text-gray-500 mt-2 text-center">
@@ -524,13 +806,47 @@ export default function HomePage() {
                   {/* Results Content */}
                   {!isResultPanelCollapsed && (
                     <div className="flex-1 p-4 overflow-y-auto">
-                      <AnalysisResults
-                        isAnalyzing={isAnalyzing}
-                        analysisData={analysisData}
-                        hasError={!!analysisError}
-                        errorMessage={analysisError || undefined}
-                        progress={analysisProgress}
-                      />
+                      {isChatMode ? (
+                        <div className="space-y-4">
+                          <h3 className="text-lg font-semibold text-gray-900">💬 채팅 도움말</h3>
+                          
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 className="font-medium text-blue-800 mb-2">💡 이런 질문을 해보세요</h4>
+                            <ul className="text-sm text-blue-700 space-y-1">
+                              <li>• "두통이 있어요"</li>
+                              <li>• "고혈압 관리 방법을 알려주세요"</li>
+                              <li>• "당뇨병 식단 관리는 어떻게 하나요?"</li>
+                              <li>• "감기 증상 완화 방법"</li>
+                              <li>• "약물 복용 시 주의사항"</li>
+                            </ul>
+                          </div>
+
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <h4 className="font-medium text-red-800 mb-2">🚨 응급상황 시</h4>
+                            <p className="text-sm text-red-700">
+                              심한 통증, 호흡곤란, 의식불명 등의 응급증상이 있다면 
+                              <strong> 즉시 119에 신고</strong>하거나 가까운 응급실을 방문하세요.
+                            </p>
+                          </div>
+
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <h4 className="font-medium text-gray-800 mb-2">⚠️ 중요 안내</h4>
+                            <p className="text-sm text-gray-700">
+                              이 상담은 일반적인 의학 정보 제공을 목적으로 하며, 
+                              정확한 진단이나 치료를 대체할 수 없습니다. 
+                              구체적인 건강 문제는 의료진과 상담하세요.
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <AnalysisResults
+                          isAnalyzing={isAnalyzing}
+                          analysisData={analysisData}
+                          hasError={!!analysisError}
+                          errorMessage={analysisError || undefined}
+                          progress={analysisProgress}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

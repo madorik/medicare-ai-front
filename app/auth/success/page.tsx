@@ -12,9 +12,19 @@ export default function AuthSuccessPage() {
   useEffect(() => {
     const handleSuccess = async () => {
       try {
+        // 현재 URL 전체 확인
+        console.log('현재 URL:', window.location.href)
+        console.log('URL 검색 파라미터:', window.location.search)
+        
         // URL 파라미터에서 토큰 추출
         const urlParams = new URLSearchParams(window.location.search)
         const token = urlParams.get('token')
+        
+        // 모든 파라미터 확인
+        console.log('모든 URL 파라미터:')
+        for (const [key, value] of urlParams.entries()) {
+          console.log(`${key}: ${value.substring(0, 50)}${value.length > 50 ? '...' : ''}`)
+        }
 
         if (token) {
           console.log('토큰 받음:', token.substring(0, 20) + '...')
@@ -22,7 +32,7 @@ export default function AuthSuccessPage() {
           // 토큰으로 로그인 처리
           await login(token)
           
-          // URL 파라미터 제거
+          // URL에서 토큰 제거
           window.history.replaceState({}, document.title, window.location.pathname)
           
           // 메인 페이지로 리다이렉트
@@ -30,6 +40,7 @@ export default function AuthSuccessPage() {
         } else {
           // 토큰이 없는 경우 로그인 페이지로
           console.error('토큰을 찾을 수 없습니다')
+          console.error('받은 파라미터:', Object.fromEntries(urlParams.entries()))
           router.push('/login?error=token_missing')
         }
       } catch (error) {

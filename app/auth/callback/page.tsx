@@ -12,28 +12,41 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // 현재 URL 전체 확인
+        console.log('[Callback] 현재 URL:', window.location.href)
+        console.log('[Callback] URL 검색 파라미터:', window.location.search)
+        
         // URL 파라미터 확인
         const urlParams = new URLSearchParams(window.location.search)
         const token = urlParams.get('token')
         const error = urlParams.get('error')
+        
+        // 모든 파라미터 확인
+        console.log('[Callback] 모든 URL 파라미터:')
+        for (const [key, value] of urlParams.entries()) {
+          console.log(`${key}: ${value.substring(0, 50)}${value.length > 50 ? '...' : ''}`)
+        }
 
         if (error) {
-          console.error('OAuth 오류:', error)
+          console.error('[Callback] OAuth 오류:', error)
           router.push('/login?error=oauth_failed')
           return
         }
 
         if (token) {
+          console.log('[Callback] 토큰 받음:', token.substring(0, 20) + '...')
           // 토큰으로 로그인 처리
           await login(token)
           // 메인 페이지로 리다이렉트
           router.push('/')
         } else {
           // 토큰이 없는 경우 실패 처리
+          console.error('[Callback] 토큰을 찾을 수 없습니다')
+          console.error('[Callback] 받은 파라미터:', Object.fromEntries(urlParams.entries()))
           router.push('/login?error=auth_failed')
         }
       } catch (error) {
-        console.error('콜백 처리 오류:', error)
+        console.error('[Callback] 콜백 처리 오류:', error)
         router.push('/login?error=callback_failed')
       }
     }
