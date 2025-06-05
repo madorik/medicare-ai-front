@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import ImageUploadSection from "@/components/image-upload-section"
 import AnalysisResults from "@/components/analysis-results"
 import { useAuth } from "@/contexts/AuthContext"
@@ -50,12 +51,15 @@ export default function HomePage() {
   const [analysisProgress, setAnalysisProgress] = useState(0)
   const [statusMessage, setStatusMessage] = useState("")
   
+  // GPT 모델 선택 상태
+  const [selectedModel, setSelectedModel] = useState("gpt-4o")
+  
   // 기존 상태들
   const [sidebarWidth, setSidebarWidth] = useState(280)
   const [isResizing, setIsResizing] = useState(false)
   const [inputMessage, setInputMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)
   const [isResultPanelCollapsed, setIsResultPanelCollapsed] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const [resultPanelWidth, setResultPanelWidth] = useState(600)
@@ -66,6 +70,9 @@ export default function HomePage() {
   const [isTyping, setIsTyping] = useState(false)
   const [isChatMode, setIsChatMode] = useState(false)
 
+  // 모바일 사이드바 상태 추가
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+
   // URL 파라미터 확인해서 채팅 모드 설정
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
@@ -74,6 +81,7 @@ export default function HomePage() {
     if (chatParam === 'true') {
       setIsChatMode(true)
       setShowAnalysis(true)
+      setIsSidebarCollapsed(false)
       // 초기 AI 환영 메시지 추가
       if (messages.length === 0) {
         addMessage(
@@ -84,6 +92,16 @@ export default function HomePage() {
     }
   }, [])
 
+  // 메인 페이지로 이동하는 함수
+  const navigateToHome = () => {
+    setIsChatMode(false)
+    setShowAnalysis(false)
+    setMessages([])
+    setIsSidebarCollapsed(true)
+    setIsMobileSidebarOpen(false)
+    router.push('/')
+  }
+
   // 분석 시작 핸들러
   const handleAnalysisStart = () => {
     setIsAnalyzing(true)
@@ -92,6 +110,8 @@ export default function HomePage() {
     setAnalysisProgress(0)
     setStatusMessage("분석을 시작합니다...")
     setShowAnalysis(true)
+    setIsSidebarCollapsed(false)
+    setIsMobileSidebarOpen(false)
   }
 
   // 실시간 분석 결과 핸들러
@@ -214,7 +234,8 @@ export default function HomePage() {
         },
         body: JSON.stringify({
           message: message,
-          chatHistory: chatHistory
+          chatHistory: chatHistory,
+          model: selectedModel
         })
       })
 
@@ -436,116 +457,140 @@ export default function HomePage() {
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
-      {/* Sidebar - 분석 결과가 있을 때만 표시 */}
-      {showAnalysis && (
-        <div
-          className={`bg-gray-900 text-white flex flex-col transition-all duration-300 ${
-            isSidebarCollapsed ? "w-16" : ""
-          }`}
-          style={{ width: isSidebarCollapsed ? "64px" : `${sidebarWidth}px` }}
-        >
-          {/* Sidebar Header */}
-          <div className="p-4 border-b border-gray-700">
-            <div className="flex items-center justify-between">
-              {!isSidebarCollapsed && (
-                <div className="flex items-center space-x-2">
-                  <Stethoscope className="w-6 h-6 text-emerald-400" />
-                  <span className="font-semibold">MediCare AI</span>
-                </div>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="text-gray-400 hover:text-white p-1"
-              >
-                {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-              </Button>
-            </div>
-          </div>
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
 
-          {/* Sidebar Content */}
-          <div className="flex-1 p-4">
+      {/* Sidebar - 항상 표시 (데스크톱에서는 항상, 모바일에서는 오버레이) */}
+      <div
+        className={`bg-gray-900 text-white flex flex-col transition-all duration-300 z-50
+          ${isSidebarCollapsed ? "w-16" : ""}
+          md:relative md:translate-x-0
+          ${isMobileSidebarOpen ? "fixed left-0 top-0 h-full translate-x-0" : "fixed -translate-x-full md:translate-x-0"}
+        `}
+        style={{ 
+          width: isSidebarCollapsed ? "64px" : `${sidebarWidth}px`,
+          maxWidth: isSidebarCollapsed ? "64px" : "320px" // 모바일에서 최대 너비 제한
+        }}
+      >
+        {/* Sidebar Header */}
+        <div className="p-4 border-b border-gray-700">
+          <div className="flex items-center justify-between">
             {!isSidebarCollapsed && (
-              <div className="space-y-4">
-                {isChatMode ? (
-                  <>
-                    <Button
-                      onClick={() => {
-                        setIsChatMode(false)
-                        setShowAnalysis(false)
-                        setMessages([])
-                        router.push('/')
-                      }}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center space-x-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      <span>파일 분석</span>
-                    </Button>
-                    <div className="text-sm text-gray-400">
-                      <p>AI와 직접 의료 상담을 하고 있습니다. 궁금한 건강 정보를 물어보세요.</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      onClick={resetAnalysis}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center space-x-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>새로운 분석</span>
-                    </Button>
-                    <div className="text-sm text-gray-400">
-                      <p>파일 분석이 완료되었습니다. 분석 결과에 대해 AI와 대화해보세요.</p>
-                    </div>
-                  </>
-                )}
+              <div className="flex items-center space-x-2">
+                <Stethoscope className="w-6 h-6 text-emerald-400" />
+                <span className="font-semibold text-sm md:text-base">MediCare AI</span>
               </div>
             )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="text-gray-400 hover:text-white p-1"
+            >
+              {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </Button>
           </div>
-
-          {/* Resize Handle */}
-          <div
-            className="w-1 bg-gray-600 hover:bg-gray-500 cursor-col-resize absolute top-0 right-0 h-full"
-            onMouseDown={startResizing}
-          />
         </div>
-      )}
+
+        {/* Sidebar Content */}
+        <div className="flex-1 p-4 overflow-y-auto">
+          {!isSidebarCollapsed && (
+            <div className="space-y-4">
+              {isChatMode ? (
+                <>
+                  <Button
+                    onClick={navigateToHome}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center space-x-2 text-sm"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>파일 분석</span>
+                  </Button>
+                  <div className="text-xs md:text-sm text-gray-400">
+                    <p>AI와 직접 의료 상담을 하고 있습니다. 궁금한 건강 정보를 물어보세요.</p>
+                  </div>
+                </>
+              ) : showAnalysis ? (
+                <>
+                  <Button
+                    onClick={resetAnalysis}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-start space-x-2 text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>새로운 분석</span>
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="text-xs md:text-sm text-gray-400">
+                    <p>의료 진료 기록 분석 AI 서비스입니다.</p>
+                    <br />
+                    <p>처방전, 검사 결과지, 진단서 등을 업로드하여 AI 분석을 받아보세요.</p>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Resize Handle - 데스크톱에서만 표시 */}
+        <div
+          className="w-1 bg-gray-600 hover:bg-gray-500 cursor-col-resize absolute top-0 right-0 h-full hidden md:block"
+          onMouseDown={startResizing}
+        />
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Stethoscope className="w-8 h-8 text-emerald-600" />
-                <span className="text-xl font-bold text-gray-900">MediCare AI</span>
-              </div>
-              {showAnalysis && (
-                <Badge variant="outline" className={isChatMode ? "bg-blue-50 text-blue-700 border-blue-200" : "bg-green-50 text-green-700 border-green-200"}>
-                  {isChatMode ? "AI 채팅" : "분석 완료"}
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center space-x-4">
-              <nav className="hidden md:flex items-center space-x-6">
+              {/* Mobile Menu Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileSidebarOpen(true)}
+                className="md:hidden p-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </Button>
+
+              {/* GPT 모델 선택박스 - 분석/채팅 모드일 때만 표시 */}
+              {showAnalysis ? (
+                <div className="flex items-center space-x-3">
+                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                    <SelectTrigger className="w-44 md:w-52">
+                      <SelectValue placeholder="모델 선택" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                      <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                      <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                      <SelectItem value="claude-3.5-sonnet">Claude 3.5 Sonnet</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
                 <button 
-                  onClick={() => router.push('/?chat=true')}
-                  className="text-gray-600 hover:text-emerald-600 transition-colors font-medium"
+                  onClick={navigateToHome}
+                  className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
                 >
-                  AI 채팅
+                  <Stethoscope className="w-6 md:w-8 h-6 md:h-8 text-emerald-600" />
+                  <span className="text-lg md:text-xl font-bold text-gray-900">MediCare AI</span>
                 </button>
-                <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                  서비스
-                </a>
-                <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                  요금제
-                </a>
-                <a href="#" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                  소개
-                </a>
-                
+              )}
+         
+            </div>
+            <div className="flex items-center space-x-2 md:space-x-4">
+              <nav className="hidden md:flex items-center space-x-6">
+           
                 {/* 로그인 상태에 따른 UI 분기 */}
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
@@ -573,8 +618,8 @@ export default function HomePage() {
                       )}
                     </div>
                     
-                    {/* 설정 버튼 */}
-                    <Button variant="ghost" size="sm" className="p-2">
+                    {/* 설정 버튼 - 데스크톱에서만 표시 */}
+                    <Button variant="ghost" size="sm" className="p-2 hidden md:flex">
                       <Settings className="w-4 h-4" />
                     </Button>
                     
@@ -583,10 +628,10 @@ export default function HomePage() {
                       variant="outline"
                       size="sm"
                       onClick={logout}
-                      className="text-gray-600 hover:text-red-600"
+                      className="text-gray-600 hover:text-red-600 text-xs md:text-sm"
                     >
-                      <LogOut className="w-4 h-4 mr-1" />
-                      로그아웃
+                      <LogOut className="w-3 md:w-4 h-3 md:h-4 mr-1" />
+                      <span className="hidden md:inline">로그아웃</span>
                     </Button>
                   </div>
                 ) : (
@@ -595,19 +640,58 @@ export default function HomePage() {
                       variant="outline" 
                       size="sm"
                       onClick={() => router.push('/login')}
+                      className="text-xs md:text-sm"
                     >
                       로그인
                     </Button>
-                    <Button 
-                      size="sm" 
-                      className="bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => router.push('/login')}
-                    >
-                      시작하기
-                    </Button>
+
                   </div>
                 )}
               </nav>
+              
+              {/* Mobile User Menu */}
+              {user && (
+                <div className="md:hidden flex items-center space-x-2">
+                  <div className="flex items-center">
+                    {user.profileImage ? (
+                      <img
+                        src={user.profileImage}
+                        alt="프로필"
+                        className="w-6 h-6 rounded-full border border-gray-300"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none'
+                        }}
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full border border-gray-300 bg-emerald-100 flex items-center justify-center">
+                        <User className="w-3 h-3 text-emerald-600" />
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={logout}
+                    className="text-gray-600 hover:text-red-600 text-xs p-1"
+                  >
+                    <LogOut className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
+              
+              {/* Mobile Login Buttons */}
+              {!user && !isLoading && (
+                <div className="md:hidden flex items-center space-x-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => router.push('/login')}
+                    className="text-xs px-2 py-1"
+                  >
+                    로그인
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -616,11 +700,11 @@ export default function HomePage() {
         <div className="flex-1 flex overflow-hidden">
           {/* Upload or Chat Area */}
           {!showAnalysis ? (
-            <div className="w-full p-6 overflow-y-auto">
+            <div className="w-full p-4 md:p-6 overflow-y-auto">
               <div className="max-w-2xl mx-auto">
                 {/* Description */}
-                <p className="text-gray-600 text-lg mb-12 text-center">
-                  처방전, 검사 결과지, 진단서 등의 이미지를 업로드해주세요
+                <p className="text-gray-600 text-base md:text-lg mb-8 md:mb-12 text-center px-4">
+                AI가 당신의 진료 기록을 대신 분석해드립니다.
                 </p>
 
                 {/* Upload Component */}
@@ -637,20 +721,20 @@ export default function HomePage() {
             // Chat Interface
             <div className="flex-1 flex flex-col bg-white overflow-hidden">
               {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-4" ref={chatContainerRef}>
-                <div className="space-y-6">
+              <div className="flex-1 overflow-y-auto p-2 md:p-4" ref={chatContainerRef}>
+                <div className="space-y-4 md:space-y-6">
                   {messages.map((message) => (
                     <div
                       key={message.id}
                       className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`flex items-start space-x-2 max-w-3xl ${
+                        className={`flex items-start space-x-2 max-w-[85%] md:max-w-3xl ${
                           message.role === "user" ? "flex-row-reverse space-x-reverse" : ""
                         }`}
                       >
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          className={`w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                             message.role === "user" ? "bg-emerald-100" : "bg-blue-100"
                           }`}
                         >
@@ -659,25 +743,25 @@ export default function HomePage() {
                               <img
                                 src={user.profileImage}
                                 alt="프로필"
-                                className="w-8 h-8 rounded-full border border-gray-300"
+                                className="w-6 md:w-8 h-6 md:h-8 rounded-full border border-gray-300"
                                 onError={(e) => {
                                   // 이미지 로드 실패 시 기본 아바타로 교체
                                   e.currentTarget.style.display = 'none'
                                 }}
                               />
                             ) : (
-                              <User className="w-5 h-5 text-emerald-600" />
+                              <User className="w-3 md:w-5 h-3 md:h-5 text-emerald-600" />
                             )
                           ) : (
-                            <Bot className="w-5 h-5 text-blue-600" />
+                            <Bot className="w-3 md:w-5 h-3 md:h-5 text-blue-600" />
                           )}
                         </div>
                         <div
-                          className={`p-3 rounded-lg ${
+                          className={`p-2 md:p-3 rounded-lg ${
                             message.role === "user" ? "bg-emerald-100 text-emerald-900" : "bg-gray-100 text-gray-900"
                           }`}
                         >
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                          <p className="text-xs md:text-sm whitespace-pre-wrap">{message.content}</p>
                           <div className="text-xs mt-1 text-gray-500">
                             {new Intl.DateTimeFormat("ko-KR", {
                               hour: "2-digit",
@@ -692,11 +776,11 @@ export default function HomePage() {
                   {/* 타이핑 인디케이터 */}
                   {isTyping && (
                     <div className="flex justify-start">
-                      <div className="flex items-start space-x-2 max-w-3xl">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-100">
-                          <Bot className="w-5 h-5 text-blue-600" />
+                      <div className="flex items-start space-x-2 max-w-[85%] md:max-w-3xl">
+                        <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-100">
+                          <Bot className="w-3 md:w-5 h-3 md:h-5 text-blue-600" />
                         </div>
-                        <div className="p-3 rounded-lg bg-gray-100 text-gray-900">
+                        <div className="p-2 md:p-3 rounded-lg bg-gray-100 text-gray-900">
                           <div className="flex items-center space-x-1">
                             <div className="flex space-x-1">
                               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
@@ -713,7 +797,7 @@ export default function HomePage() {
               </div>
 
               {/* Chat Input */}
-              <div className="border-t p-4 bg-white flex-shrink-0">
+              <div className="border-t p-2 md:p-4 bg-white flex-shrink-0">
                 <div className="flex items-center space-x-2">
                   <div className="flex-1 relative">
                     <textarea
@@ -721,14 +805,14 @@ export default function HomePage() {
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyDown={handleKeyDown}
                       placeholder={isStreaming ? "AI가 응답하는 동안 기다려주세요..." : "진료 결과에 대해 질문해보세요..."}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none h-12 max-h-32"
+                      className="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none h-10 md:h-12 max-h-32 text-sm md:text-base"
                       rows={1}
                       disabled={isStreaming}
                     />
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 hidden md:flex"
                       onClick={() => {}}
                       disabled={isStreaming}
                     >
@@ -736,7 +820,7 @@ export default function HomePage() {
                     </Button>
                   </div>
                   <Button 
-                    className="bg-emerald-600 hover:bg-emerald-700" 
+                    className="bg-emerald-600 hover:bg-emerald-700 p-2 md:p-3" 
                     onClick={handleSendMessage}
                     disabled={isStreaming || inputMessage.trim() === ""}
                   >
@@ -747,9 +831,9 @@ export default function HomePage() {
                     )}
                   </Button>
                 </div>
-                <div className="text-xs text-gray-500 mt-2 text-center">
+                <div className="text-xs text-gray-500 mt-2 text-center px-2">
                   <div className="space-y-1">
-                    <p>
+                    <p className="hidden md:block">
                       <strong>개인정보 보호:</strong> 업로드된 진료 기록은 서버에 저장되지 않으며, 분석 완료 후 즉시 삭제됩니다.
                     </p>
                     <p>
@@ -764,17 +848,18 @@ export default function HomePage() {
           {/* Analysis Results Panel */}
           {showAnalysis && (
             <>
-              {/* Resize Handle for Results Panel */}
+              {/* Resize Handle for Results Panel - 데스크톱에서만 표시 */}
               <div
-                className="w-1 bg-gray-300 hover:bg-gray-400 cursor-col-resize"
+                className="w-1 bg-gray-300 hover:bg-gray-400 cursor-col-resize hidden md:block"
                 onMouseDown={startResizingResult}
               />
 
               {/* Analysis Results Panel */}
               <div
-                className={`bg-gray-50 border-l border-gray-200 overflow-y-auto transition-all duration-300 ${
-                  isResultPanelCollapsed ? "w-16" : ""
-                }`}
+                className={`bg-gray-50 border-l border-gray-200 overflow-y-auto transition-all duration-300 
+                  ${isResultPanelCollapsed ? "w-16" : ""}
+                  hidden md:block
+                `}
                 style={{ width: isResultPanelCollapsed ? "64px" : `${resultPanelWidth}px` }}
               >
                 <div className="h-full flex flex-col">

@@ -1,66 +1,28 @@
 "use client"
 
-import { useState, useEffect, Suspense } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Stethoscope, Shield, Users, Brain, ArrowLeft, Loader2, AlertCircle } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { Stethoscope, Shield, Users, Brain, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-function LoginContent() {
+export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const backendURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9001'
 
-  // URL 파라미터에서 오류 메시지 확인
-  useEffect(() => {
-    const errorParam = searchParams.get('error')
-    if (errorParam) {
-      switch (errorParam) {
-        case 'oauth_failed':
-          setError('OAuth 인증에 실패했습니다. 다시 시도해주세요.')
-          break
-        case 'auth_failed':
-          setError('인증에 실패했습니다. 다시 시도해주세요.')
-          break
-        case 'callback_failed':
-          setError('로그인 처리 중 오류가 발생했습니다.')
-          break
-        case 'token_missing':
-          setError('인증 토큰을 찾을 수 없습니다.')
-          break
-        case 'login_failed':
-          setError('로그인 처리에 실패했습니다. 다시 시도해주세요.')
-          break
-        default:
-          setError('알 수 없는 오류가 발생했습니다.')
-      }
-    }
-  }, [searchParams])
-
-  const handleGoogleLogin = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      
-      // 백엔드 구글 OAuth URL로 리다이렉트
-      window.location.href = `${backendURL}/auth/google`
-      
-    } catch (error) {
-      console.error('구글 로그인 오류:', error)
-      setError('로그인 중 오류가 발생했습니다.')
+  const handleGoogleLogin = () => {
+    setIsLoading(true)
+    // Google 로그인 로직 구현
+    setTimeout(() => {
       setIsLoading(false)
-    }
+      // 로그인 성공 후 리다이렉트
+    }, 2000)
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex">
       {/* Left Side - Branding */}
-      <div className="hidden lg:flex lg:w-[30%] bg-gradient-to-br from-emerald-600 to-emerald-800 p-12 flex-col justify-between text-white relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-600 to-emerald-800 p-12 flex-col justify-between text-white relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 left-20 w-32 h-32 border border-white rounded-full"></div>
@@ -115,8 +77,17 @@ function LoginContent() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="w-full lg:w-[70%] flex items-center justify-center p-8">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
+          {/* Back Button */}
+          <Link
+            href="/"
+            className="inline-flex items-center text-gray-600 hover:text-emerald-600 mb-8 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            메인으로 돌아가기
+          </Link>
+
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center mb-8">
             <div className="flex items-center space-x-3">
@@ -126,16 +97,6 @@ function LoginContent() {
               <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
             </div>
           </div>
-
-          {/* 오류 메시지 */}
-          {error && (
-            <Alert className="mb-6 border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-700">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
 
           <Card className="border-0 shadow-xl">
             <CardHeader className="text-center space-y-2 pb-6">
@@ -153,7 +114,7 @@ function LoginContent() {
               >
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
                     <span>로그인 중...</span>
                   </div>
                 ) : (
@@ -204,15 +165,3 @@ function LoginContent() {
     </div>
   )
 }
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-      </div>
-    }>
-      <LoginContent />
-    </Suspense>
-  )
-} 

@@ -92,7 +92,6 @@ export default function AnalysisResults({
                 <Brain className="w-6 h-6 text-emerald-600" />
               </div>
               <div>
-                <CardTitle className="text-gray-800">AI 분석 결과</CardTitle>
                 <CardDescription className="text-gray-600 mt-1">
                   {isAnalyzing 
                     ? "실시간으로 분석 결과가 업데이트됩니다"
@@ -123,20 +122,6 @@ export default function AnalysisResults({
         <Card className="border-0 shadow-md">
           <CardContent className="pt-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center space-x-2 text-gray-700 font-medium">
-                  <Activity className="w-4 h-4 text-blue-600" />
-                  <span>분석 진행률</span>
-                </span>
-                <span className="text-blue-600 font-semibold">{progress}%</span>
-              </div>
-              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-3 bg-gradient-to-r from-blue-500 to-emerald-500 transition-all duration-500 ease-out rounded-full" 
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              
               <div className="flex items-center justify-center text-sm text-gray-600">
                 <span className="animate-pulse flex items-center space-x-1">
                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
