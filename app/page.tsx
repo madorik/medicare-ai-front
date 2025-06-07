@@ -329,7 +329,7 @@ export default function HomePage() {
                   }
                 } else {
                   console.warn('Received null or undefined content:', data);
-                  addErrorMessage('Received invalid content from server. Please try again.');
+                  // 에러 메시지를 표시하지 않고 그냥 무시
                 }
                 
                 if (data.done) {
@@ -390,8 +390,15 @@ export default function HomePage() {
     }
   }
 
-  // 에러 메시지 추가
+  // 에러 메시지 추가 (콘솔에만 로깅)
   const addErrorMessage = (errorText: string) => {
+    // "invalid content" 에러는 표시하지 않음
+    if (errorText.includes('invalid content')) {
+      console.warn('Invalid content 에러 무시:', errorText)
+      return
+    }
+    
+    // 중요한 에러만 사용자에게 표시
     const errorMessage: Message = {
       id: Date.now().toString(),
       role: "assistant",
