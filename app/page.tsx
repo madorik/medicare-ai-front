@@ -62,6 +62,7 @@ export default function HomePage() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)
   const [isResultPanelCollapsed, setIsResultPanelCollapsed] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [resultPanelWidth, setResultPanelWidth] = useState(600)
   const [isResizingResult, setIsResizingResult] = useState(false)
 
@@ -177,6 +178,16 @@ export default function HomePage() {
   const handleSendMessage = async () => {
     const currentMessage = inputMessage.trim()
     if (!currentMessage || isStreaming) return
+
+    // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
+    const currentToken = token || localStorage.getItem('auth_token')
+    if (!currentToken) {
+      addErrorMessage('채팅을 위해 로그인이 필요합니다.')
+      setTimeout(() => {
+        router.push('/login?error=auth_required&message=채팅을 위해 로그인이 필요합니다')
+      }, 1500)
+      return
+    }
 
     // 메시지 길이 검증
     if (currentMessage.length > 100) {
@@ -866,9 +877,6 @@ export default function HomePage() {
                   {/* Results Panel Header */}
                   <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
                     <div className="flex items-center justify-between">
-                      {!isResultPanelCollapsed && (
-                        <h2 className="text-lg font-semibold text-gray-900">분석 결과</h2>
-                      )}
                       <Button
                         variant="ghost"
                         size="sm"

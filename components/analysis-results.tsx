@@ -83,70 +83,34 @@ export default function AnalysisResults({
 
   return (
     <div className="space-y-6">
-      {/* 분석 상태 헤더 */}
-      <Card className="border-0 shadow-lg bg-gradient-to-r from-emerald-50 to-blue-50">
-        <CardHeader>
+      {/* 실시간 스트리밍 결과 */}
+      <Card className="border-0 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                <Brain className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div>
-                <CardDescription className="text-gray-600 mt-1">
-                  {isAnalyzing 
-                    ? "실시간으로 분석 결과가 업데이트됩니다"
-                    : "업로드된 진료 기록을 분석한 결과입니다"
-                  }
-                </CardDescription>
-              </div>
+            <div className="flex items-center space-x-2">
+              <FileText className="w-5 h-5 text-gray-700" />
+              <CardTitle className="text-gray-800">분석 내용</CardTitle>
+              {isAnalyzing && (
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-emerald-600 font-medium">실시간</span>
+                </div>
+              )}
             </div>
+            {/* 분석 상태를 결과 옆에 배치 */}
             <div className="flex items-center space-x-2">
               {isAnalyzing ? (
                 <Badge className="bg-blue-500 text-white border-0 shadow-sm">
                   <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                  분석 중
+                  분석 진행중
                 </Badge>
-              ) : (
+              ) : analysisData ? (
                 <Badge className="bg-emerald-500 text-white border-0 shadow-sm">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   분석 완료
                 </Badge>
-              )}
+              ) : null}
             </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* 진행률 */}
-      {isAnalyzing && (
-        <Card className="border-0 shadow-md">
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-center text-sm text-gray-600">
-                <span className="animate-pulse flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <span className="ml-2">AI가 열심히 분석하고 있습니다</span>
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 실시간 스트리밍 결과 */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
-          <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-gray-700" />
-            <CardTitle className="text-gray-800">분석 내용</CardTitle>
-            {isAnalyzing && (
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-emerald-600 font-medium">실시간</span>
-              </div>
-            )}
           </div>
         </CardHeader>
         <CardContent className="p-0">

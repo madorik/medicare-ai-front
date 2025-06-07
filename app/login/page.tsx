@@ -36,6 +36,20 @@ function LoginContent() {
         case 'login_failed':
           setError('로그인 처리에 실패했습니다. 다시 시도해주세요.')
           break
+        case 'auth_required':
+          const message = searchParams.get('message')
+          setError(message || '이 기능을 사용하려면 로그인이 필요합니다.')
+          break
+        case 'token_missing':
+          setError('OAuth 인증 중 토큰을 받지 못했습니다. 다시 시도해주세요.')
+          // 개발 환경에서 디버그 정보 표시
+          if (process.env.NODE_ENV === 'development') {
+            const details = searchParams.get('details')
+            if (details) {
+              console.log('OAuth 디버그 정보:', decodeURIComponent(details))
+            }
+          }
+          break
         default:
           setError('알 수 없는 오류가 발생했습니다.')
       }

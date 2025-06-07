@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { Loader2, Stethoscope } from "lucide-react"
@@ -8,51 +8,91 @@ import { Loader2, Stethoscope } from "lucide-react"
 export default function AuthCallbackPage() {
   const router = useRouter()
   const { login } = useAuth()
+  const [retryCount, setRetryCount] = useState(0)
+  const [debugInfo, setDebugInfo] = useState<string[]>([])
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // 현재 URL 전체 확인
-        console.log('[Callback] 현재 URL:', window.location.href)
-        console.log('[Callback] URL 검색 파라미터:', window.location.search)
+        // 디버그 정보 수집
+        const currentUrl = window.location.href
+        const searchParams = window.location.search
+        const hash = window.location.hash
         
-        // URL 파라미터 확인
-        const urlParams = new URLSearchParams(window.location.search)
-        const token = urlParams.get('token')
+        console.log('=== Auth Callback 페이지 디버그 ===')
+        console.log('현재 URL:', currentUrl)
+        console.log('Search Params:', searchParams)
+        console.log('Hash:', hash)
+        
+        // URL 파라미터 확인 (search params 및 hash 모두 확인)
+        const urlParams = new URLSearchParams(searchParams)
+        const hashParams = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash)
+        
+        // search params에서 토큰 및 에러 확인
+        let token = urlParams.get('token')
         const error = urlParams.get('error')
         
-        // 모든 파라미터 확인
-        console.log('[Callback] 모든 URL 파라미터:')
-        for (const [key, value] of urlParams.entries()) {
-          console.log(`${key}: ${value.substring(0, 50)}${value.length > 50 ? '...' : ''}`)
+        // hash에서도 토큰 찾기 (일부 OAuth 제공자는 hash를 사용)
+        if (!token) {
+          token = hashParams.get('token') || hashParams.get('access_token')
         }
+        
+        // 모든 파라미터 로깅
+        const allParams = new Map()
+        for (const [key, value] of urlParams.entries()) {
+          allParams.set(`search.${key}`, value)
+        }
+        for (const [key, value] of hashParams.entries()) {
+          allParams.set(`hash.${key}`, value)
+        }
+        
+        console.log('모든 파라미터:', Object.fromEntries(allParams))
 
         if (error) {
-          console.error('[Callback] OAuth 오류:', error)
+          console.error('❌ OAuth 오류:', error)
           router.push('/login?error=oauth_failed')
           return
         }
 
         if (token) {
-          console.log('[Callback] 토큰 받음:', token.substring(0, 20) + '...')
+          console.log('✅ 토큰 발견:', token.substring(0, 20) + '...')
           // 토큰으로 로그인 처리
           await login(token)
           // 메인 페이지로 리다이렉트
           router.push('/')
+          
+        } else if (retryCount < 3) {
+          // 토큰이 없으면 몇 번 더 시도 (OAuth 리다이렉트 지연 고려)
+          console.log(`⏳ 토큰 없음, 재시도 중... (${retryCount + 1}/3)`)
+          setRetryCount(prev => prev + 1)
+          setDebugInfo(prev => [...prev, `재시도 ${retryCount + 1}: 토큰 없음`])
+          
+          // 1초 후 재시도
+          setTimeout(() => {
+            handleCallback()
+          }, 1000)
+          
         } else {
-          // 토큰이 없는 경우 실패 처리
-          console.error('[Callback] 토큰을 찾을 수 없습니다')
-          console.error('[Callback] 받은 파라미터:', Object.fromEntries(urlParams.entries()))
-          router.push('/login?error=auth_failed')
+          // 3번 시도 후에도 토큰이 없으면 에러 처리
+          console.warn('❌ 최대 재시도 후에도 토큰을 찾을 수 없습니다')
+          console.warn('받은 파라미터:', Object.fromEntries(allParams))
+          
+          // 더 자세한 디버그 정보와 함께 로그인 페이지로
+          const errorDetails = encodeURIComponent(`URL: ${currentUrl}, Params: ${JSON.stringify(Object.fromEntries(allParams))}`)
+          router.push(`/login?error=auth_failed&details=${errorDetails}`)
         }
+        
       } catch (error) {
-        console.error('[Callback] 콜백 처리 오류:', error)
+        console.error('콜백 처리 오류:', error)
         router.push('/login?error=callback_failed')
       }
     }
 
-    handleCallback()
-  }, [router, login])
+    // 페이지 로드 후 약간의 지연을 두고 시작 (OAuth 리다이렉트 안정화)
+    const timer = setTimeout(handleCallback, 100)
+    
+    return () => clearTimeout(timer)
+  }, [router, login, retryCount])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-emerald-50 flex items-center justify-center">
@@ -67,7 +107,22 @@ export default function AuthCallbackPage() {
         <div className="space-y-4">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-600 mx-auto" />
           <h2 className="text-xl font-semibold text-gray-800">로그인 처리 중...</h2>
-          <p className="text-gray-600">잠시만 기다려주세요.</p>
+          <p className="text-gray-600">
+            {retryCount > 0 
+              ? `인증 정보 확인 중... (${retryCount}/3)`
+              : '잠시만 기다려주세요.'
+            }
+          </p>
+          
+          {/* 개발 환경에서만 디버그 정보 표시 */}
+          {process.env.NODE_ENV === 'development' && debugInfo.length > 0 && (
+            <div className="mt-6 p-4 bg-white/50 rounded-lg text-left">
+              <p className="text-sm font-medium text-gray-700 mb-2">디버그 정보:</p>
+              {debugInfo.map((info, index) => (
+                <p key={index} className="text-xs text-gray-600">{info}</p>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

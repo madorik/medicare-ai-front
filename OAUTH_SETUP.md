@@ -243,7 +243,85 @@ fetch('/api/medical/analyze', {
 ## 문제 해결
 
 ### 자주 발생하는 오류
-1. **CORS 오류**: 백엔드 CORS 설정 확인
-2. **JWT 오류**: JWT_SECRET 설정 및 토큰 유효성 확인
-3. **리디렉션 오류**: Google Console의 승인된 URI 확인
-4. **토큰 만료**: 토큰 만료 시간 및 갱신 로직 확인 
+
+#### 1. "토큰을 찾을 수 없습니다" 오류
+**증상**: 로그인 시 `/auth/success` 또는 `/auth/callback` 페이지에서 토큰을 찾을 수 없다는 에러 발생
+
+**원인 분석**:
+1. **백엔드 리다이렉트 URL 불일치**: 백엔드에서 잘못된 URL로 리다이렉트
+2. **토큰 파라미터명 불일치**: `token` 대신 다른 파라미터명 사용
+3. **Hash vs Search 파라미터**: 일부 OAuth는 hash(#)를 사용하여 토큰 전달
+
+**해결 방법**:
+
+1. **백엔드 리다이렉트 URL 확인**:
+   ```javascript
+   // 올바른 리다이렉트 (Express.js 예시)
+   res.redirect(`${process.env.FRONTEND_URL}/auth/success?token=${token}`);
+   
+   // 또는 callback 페이지 사용 시
+   res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+   ```
+
+2. **개발자 도구에서 실제 URL 확인**:
+   - 브라우저 개발자 도구 > 네트워크 탭에서 리다이렉트 URL 확인
+   - 콘솔에서 디버그 로그 확인
+
+3. **환경변수 확인**:
+   ```bash
+   # 백엔드 .env
+   FRONTEND_URL=http://localhost:3000  # 포트 번호 정확한지 확인
+   
+   # 프론트엔드 .env.local  
+   NEXT_PUBLIC_API_URL=http://localhost:9001  # 백엔드 URL 정확한지 확인
+   ```
+
+4. **Google OAuth 설정 확인**:
+   - Google Cloud Console > 승인된 리디렉션 URI에 백엔드 콜백 URL 등록
+   - `http://localhost:9001/auth/google/callback`
+
+#### 2. CORS 오류
+**해결**: 백엔드 CORS 설정 확인
+```javascript
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true
+}));
+```
+
+#### 3. JWT 오류
+**해결**: JWT_SECRET 설정 및 토큰 유효성 확인
+
+#### 4. 리디렉션 오류
+**해결**: Google Console의 승인된 URI 확인
+
+#### 5. 토큰 만료
+**해결**: 토큰 만료 시간 및 갱신 로직 확인
+
+### 빠른 디버깅 체크리스트
+
+로그인이 작동하지 않을 때 순서대로 확인:
+
+1. ✅ **백엔드 서버 실행 확인** (`localhost:9001`)
+2. ✅ **프론트엔드 서버 실행 확인** (`localhost:3000`)  
+3. ✅ **환경변수 설정 확인** (`.env` 파일들)
+4. ✅ **Google OAuth 설정 확인** (Client ID, Secret, 리다이렉트 URI)
+5. ✅ **개발자 도구에서 네트워크 요청 확인**
+6. ✅ **콘솔 로그 확인** (프론트엔드와 백엔드 모두)
+7. ✅ **실제 리다이렉트 URL 확인** (token 파라미터 포함되었는지)
+
+### 개발 환경에서 토큰 직접 테스트
+
+토큰이 올바르게 생성되는지 테스트:
+
+```bash
+# 백엔드에서 테스트 토큰 생성
+node -e "
+const jwt = require('jsonwebtoken');
+const token = jwt.sign({id: 'test', email: 'test@test.com'}, 'your_jwt_secret');
+console.log('Test token:', token);
+console.log('Test URL: http://localhost:3000/auth/success?token=' + token);
+"
+```
+
+생성된 URL을 브라우저에서 직접 접속하여 로그인 프로세스 테스트 가능. 

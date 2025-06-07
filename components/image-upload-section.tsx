@@ -5,7 +5,8 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield } from "lucide-react"
-import { useApiRequest } from "@/contexts/AuthContext"
+import { useApiRequest, useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 
 interface ImageUploadSectionProps {
   onAnalysisStart: () => void
@@ -35,9 +36,24 @@ export default function ImageUploadSection({
   const [supportedFormats, setSupportedFormats] = useState<SupportedFormat[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { apiRequest } = useApiRequest()
+  const { token, user } = useAuth()
+  const router = useRouter()
   
   // API URL 환경변수 설정
   const backendURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9001'
+
+  // 인증 체크 함수
+  const checkAuthentication = (): boolean => {
+    const currentToken = token || localStorage.getItem('auth_token')
+    
+    if (!currentToken) {
+      // 토큰이 없으면 로그인 페이지로 리다이렉트
+      router.push('/login?error=auth_required&message=파일 업로드를 위해 로그인이 필요합니다')
+      return false
+    }
+    
+    return true
+  }
 
   // 지원 형식 조회
   useEffect(() => {
@@ -107,6 +123,11 @@ export default function ImageUploadSection({
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
+
+    // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
+    if (!checkAuthentication()) {
+      return
+    }
 
     setError(null)
     
@@ -279,6 +300,11 @@ export default function ImageUploadSection({
     event.preventDefault()
     const files = event.dataTransfer.files
     if (files[0]) {
+      // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
+      if (!checkAuthentication()) {
+        return
+      }
+      
       // 가상의 input 이벤트 생성
       const mockEvent = {
         target: { files: [files[0]] }
@@ -383,7 +409,13 @@ export default function ImageUploadSection({
                 className="hidden"
               />
               <Button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => {
+                  // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
+                  if (!checkAuthentication()) {
+                    return
+                  }
+                  fileInputRef.current?.click()
+                }}
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
                 파일 선택하기
