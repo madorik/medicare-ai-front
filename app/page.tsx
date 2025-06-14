@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { flushSync } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SimpleToastContainer } from "@/components/ui/simple-toast"
 import ImageUploadSection from "@/components/image-upload-section"
 import AnalysisResults from "@/components/analysis-results"
 import { useAuth } from "@/contexts/AuthContext"
@@ -36,12 +38,28 @@ interface Message {
   timestamp: Date
 }
 
+interface ToastMessage {
+  id: string
+  message: string
+  type?: 'success' | 'info' | 'warning' | 'error'
+}
+
 export default function HomePage() {
   const { user, logout, isLoading, token } = useAuth()
   const router = useRouter()
   
   // API 서버 설정
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9001'
+
+  // 토큰 상태 디버깅
+  useEffect(() => {
+    console.log('🔍 토큰 상태 확인:', {
+      user: !!user,
+      token: !!token,
+      isLoading,
+      localStorage: !!localStorage.getItem('auth_token')
+    })
+  }, [user, token, isLoading])
 
   // 파일 업로드 및 분석 관련 상태
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -65,6 +83,12 @@ export default function HomePage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [resultPanelWidth, setResultPanelWidth] = useState(600)
   const [isResizingResult, setIsResizingResult] = useState(false)
+  
+  // inputMessage의 최신 값을 추적하기 위한 ref
+  const inputMessageRef = useRef(inputMessage)
+  useEffect(() => {
+    inputMessageRef.current = inputMessage
+  }, [inputMessage])
 
   // 채팅 관련 상태들
   const [isStreaming, setIsStreaming] = useState(false)
@@ -73,6 +97,14 @@ export default function HomePage() {
 
   // 모바일 사이드바 상태 추가
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  
+  // 토스트 메시지 상태
+  const [toasts, setToasts] = useState<ToastMessage[]>([])
+
+  // inputMessage 상태 변경 추적 (디버깅용)
+  useEffect(() => {
+    // 디버깅 로그 제거됨
+  }, [inputMessage])
 
   // URL 파라미터 확인해서 채팅 모드 설정
   useEffect(() => {
@@ -174,14 +206,84 @@ export default function HomePage() {
     setMessages((prev) => [...prev, newMessage])
   }
 
+  // 토스트 메시지 추가
+  const addToast = (message: string, type: 'success' | 'info' | 'warning' | 'error' = 'info') => {
+    const newToast: ToastMessage = {
+      id: Date.now().toString(),
+      message,
+      type,
+    }
+    setToasts((prev) => [...prev, newToast])
+  }
+
+  // 토스트 메시지 제거
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter(toast => toast.id !== id))
+  }
+
+  // 강제 리렌더링용 (필요시 사용)
+  // const [, forceUpdate] = useState(0)
+
+  const handleTextDragToChat = (text: string) => {
+    if (!text.trim()) return;
+    const trimmedText = text.length > 200 ? text.substring(0, 200) + '...' : text;
+    
+    // 입력창에 텍스트 설정
+    setInputMessage(trimmedText);
+    
+    // 토스트 알림
+    addToast('선택한 텍스트가 입력창에 추가되었습니다!', 'success');
+  }
+
+  // 텍스트 메시지를 바로 전송하는 함수
+  const sendTextMessage = async (message: string) => {
+    if (!message.trim() || isStreaming) return
+
+    // 인증 체크
+    const currentToken = token || localStorage.getItem('auth_token')
+    if (!currentToken) {
+      addErrorMessage('채팅을 위해 로그인이 필요합니다.')
+      return
+    }
+
+    // 사용자 메시지 추가
+    addMessage('user', message)
+    setInputMessage("")
+
+    // 스트리밍 상태 설정
+    setIsStreaming(true)
+    setIsTyping(true)
+
+    try {
+      // AI 응답 처리
+      await streamMessage(message)
+    } catch (error) {
+      console.error('sendTextMessage 오류:', error)
+      const errorMsg = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다."
+      addMessage("assistant", `⚠️ 오류: ${errorMsg}`)
+    } finally {
+      setIsStreaming(false)
+      setIsTyping(false)
+    }
+  }
+
   // 메시지 전송
   const handleSendMessage = async () => {
     const currentMessage = inputMessage.trim()
     if (!currentMessage || isStreaming) return
 
+    console.log('📤 메시지 전송 시도:', currentMessage)
+
     // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
     const currentToken = token || localStorage.getItem('auth_token')
+    console.log('🔑 handleSendMessage 토큰 확인:', {
+      contextToken: !!token,
+      localStorageToken: !!localStorage.getItem('auth_token'),
+      finalToken: !!currentToken
+    })
+    
     if (!currentToken) {
+      console.error('❌ handleSendMessage: 토큰이 없습니다!')
       addErrorMessage('채팅을 위해 로그인이 필요합니다.')
       setTimeout(() => {
         router.push('/login?error=auth_required&message=채팅을 위해 로그인이 필요합니다')
@@ -190,8 +292,8 @@ export default function HomePage() {
     }
 
     // 메시지 길이 검증
-    if (currentMessage.length > 100) {
-      addErrorMessage('메시지는 100자 이하로 입력해주세요.')
+    if (currentMessage.length > 200) {
+      addErrorMessage('메시지는 200자 이하로 입력해주세요.')
       return
     }
 
@@ -215,16 +317,21 @@ export default function HomePage() {
   }
 
   // SSE 스트리밍 메시지 (9001 서버 연동)
-  const streamMessage = async (message: string, retryCount = 0) => {
-    // 최대 재시도 횟수 설정
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 2000; // 2초
+  const streamMessage = async (message: string) => {
+    console.log('🔄 streamMessage 호출')
 
     try {
       // AuthContext의 token 사용 (localStorage fallback)
       const authToken = token || localStorage.getItem('auth_token')
       
+      console.log('🔑 토큰 확인:', {
+        contextToken: !!token,
+        localStorageToken: !!localStorage.getItem('auth_token'),
+        finalToken: !!authToken
+      })
+      
       if (!authToken) {
+        console.error('❌ 토큰이 없습니다!')
         throw new Error('인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.')
       }
       
@@ -371,20 +478,19 @@ export default function HomePage() {
       
       // 인증 오류인 경우 로그인 페이지로 리다이렉트
       if (error instanceof Error && (error.message.includes('인증') || error.message.includes('401') || error.message.includes('403'))) {
+        console.log('🔐 인증 오류 감지, 로그인 페이지로 이동')
         addErrorMessage("인증이 만료되었습니다. 다시 로그인해주세요.")
         setTimeout(() => {
           router.push('/login')
         }, 2000)
-      } else if (retryCount < MAX_RETRIES) {
-        // 재시도 로직
-        console.warn(`재시도 중... (${retryCount + 1}/${MAX_RETRIES})`);
-        setTimeout(() => streamMessage(message, retryCount + 1), RETRY_DELAY);
       } else {
-        // 구체적인 에러 메시지 표시
+        // 오류 메시지 표시
+        console.error('❌ 채팅 오류 발생:', error)
         const errorMsg = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다."
         addMessage("assistant", `⚠️ 오류: ${errorMsg}`)
       }
     } finally {
+      console.log('🏁 스트리밍 상태 초기화')
       setIsStreaming(false)
       setIsTyping(false)
     }
@@ -475,6 +581,8 @@ export default function HomePage() {
 
   return (
     <div className="h-screen flex overflow-hidden bg-gray-50">
+      {/* 토스트 알림 */}
+      <SimpleToastContainer toasts={toasts} onRemove={removeToast} />
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div 
@@ -819,6 +927,7 @@ export default function HomePage() {
                 <div className="flex items-center space-x-2">
                   <div className="flex-1 relative">
                     <textarea
+                      ref={textareaRef}
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyDown={handleKeyDown}
@@ -941,6 +1050,7 @@ export default function HomePage() {
                           hasError={!!analysisError}
                           errorMessage={analysisError || undefined}
                           progress={analysisProgress}
+                          onTextDragToChat={handleTextDragToChat}
                         />
                       )}
                     </div>

@@ -4,8 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain, Clock, Loader2, Activity, Download, Share, Calendar, Shield } from "lucide-react"
+import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain, Clock, Loader2, Activity, Download, Share, Calendar, Shield, MessageSquare } from "lucide-react"
 import { useEffect, useRef } from "react"
+import { useTextDrag } from "@/hooks/use-text-drag"
 
 interface AnalysisResultsProps {
   isAnalyzing: boolean
@@ -13,6 +14,7 @@ interface AnalysisResultsProps {
   hasError: boolean
   errorMessage?: string
   progress?: number
+  onTextDragToChat?: (text: string) => void
 }
 
 export default function AnalysisResults({ 
@@ -20,9 +22,21 @@ export default function AnalysisResults({
   analysisData, 
   hasError, 
   errorMessage,
-  progress = 0
+  progress = 0,
+  onTextDragToChat
 }: AnalysisResultsProps) {
   const streamingRef = useRef<HTMLDivElement>(null)
+
+  // 텍스트 드래그 훅 사용
+  const { 
+    isDragging, 
+    selectedText, 
+    labelPosition, 
+    showLabel, 
+    textDragHandlers, 
+    onLabelClick, 
+    clearSelection 
+  } = useTextDrag({})
 
   // 자동 스크롤 처리
   useEffect(() => {
@@ -115,27 +129,92 @@ export default function AnalysisResults({
         </CardHeader>
         <CardContent className="p-0">
           {analysisData ? (
-            <div 
-              ref={streamingRef}
-              className="bg-white rounded-b-lg p-6 max-h-96 overflow-y-auto"
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word'
-              }}
-            >
-              <div className="prose prose-gray max-w-none">
-                <div className="text-gray-800 leading-relaxed text-sm">
-                  {analysisData}
+            <>
+              {/* 드래그 안내 문구 */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-blue-700">
+                    <MessageSquare className="w-4 h-4" />
+                    <span className="text-xs font-medium">
+                      텍스트를 드래그하거나 더블클릭한 후 "to chat" 라벨을 클릭하여 채팅창에 입력하세요
+                    </span>
+                  </div>
                 </div>
-                
-                {isAnalyzing && (
-                  <div className="flex items-center space-x-2 text-emerald-600 mt-6 pt-4 border-t border-gray-100">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm font-medium">분석이 계속 진행 중입니다...</span>
+              </div>
+              
+              <div 
+                ref={streamingRef}
+                className={`bg-white rounded-b-lg p-6 max-h-96 overflow-y-auto transition-all duration-200 relative ${
+                  isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''
+                } ${selectedText ? 'bg-emerald-50 border border-emerald-200' : ''}`}
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  userSelect: 'text'
+                }}
+                {...textDragHandlers}
+              >
+                <div className="prose prose-gray max-w-none">
+                  <div className="text-gray-800 leading-relaxed text-sm select-text">
+                    {analysisData}
+                  </div>
+                  
+                  {isAnalyzing && (
+                    <div className="flex items-center space-x-2 text-emerald-600 mt-6 pt-4 border-t border-gray-100">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span className="text-sm font-medium">분석이 계속 진행 중입니다...</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* To Chat 라벨 */}
+                {(() => {
+                  return null
+                })()}
+                {showLabel && selectedText && labelPosition && streamingRef.current && (
+                  <div 
+                    className="absolute z-10 bg-emerald-600 text-white px-3 py-2 rounded-lg shadow-lg cursor-pointer hover:bg-emerald-700 transition-all duration-200 transform scale-95 hover:scale-100"
+                    style={{
+                      left: (() => {
+                        const rect = streamingRef.current?.getBoundingClientRect()
+                        if (!rect) return 10
+                        const relativeX = labelPosition.x - rect.left
+                        return Math.min(Math.max(relativeX - 50, 10), rect.width - 100)
+                      })(),
+                      top: (() => {
+                        const rect = streamingRef.current?.getBoundingClientRect()
+                        if (!rect) return 10
+                        const relativeY = labelPosition.y - rect.top
+                        return Math.max(relativeY - 60, 10)
+                      })(),
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      if (selectedText && onTextDragToChat) {
+                        onTextDragToChat(selectedText.trim())
+                        clearSelection()
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                    }}
+                    onPointerDown={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                    }}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <MessageSquare className="w-4 h-4" />
+                      <span className="text-sm font-medium">Add to Chat</span>
+                    </div>
+                    <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-emerald-600 rotate-45"></div>
                   </div>
                 )}
+
               </div>
-            </div>
+            </>
           ) : isAnalyzing ? (
             <div className="p-8 text-center">
               <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
