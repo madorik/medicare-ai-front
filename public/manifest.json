@@ -1,0 +1,16 @@
+{
+  "name": "MediCare AI",
+  "short_name": "MediCare AI",
+  "description": "AI 기반 의료 진료 기록 분석 서비스",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e293b",
+  "theme_color": "#10d9c4",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+} 

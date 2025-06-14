@@ -6,6 +6,16 @@ export const metadata: Metadata = {
   title: 'MediCare AI',
   description: 'Created with 민균',
   generator: 'mgjeong',
+  icons: {
+    icon: [
+      {
+        url: '/icon.svg',
+        type: 'image/svg+xml',
+      },
+    ],
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({
