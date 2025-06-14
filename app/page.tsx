@@ -73,7 +73,7 @@ export default function HomePage() {
   const [statusMessage, setStatusMessage] = useState("")
   
   // GPT 모델 선택 상태
-  const [selectedModel, setSelectedModel] = useState("gpt-4o")
+  const [selectedModel, setSelectedModel] = useState("gpt-4o-mini")
   
   // 기존 상태들
   const [sidebarWidth, setSidebarWidth] = useState(280)
@@ -100,6 +100,9 @@ export default function HomePage() {
 
   // 모바일 사이드바 상태 추가
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  
+  // 모바일 분석 결과 모달 상태
+  const [isMobileResultsOpen, setIsMobileResultsOpen] = useState(false)
   
   // 토스트 메시지 상태
   const [toasts, setToasts] = useState<ToastMessage[]>([])
@@ -167,6 +170,15 @@ export default function HomePage() {
     setIsAnalyzing(false)
     setAnalysisProgress(100)
     setStatusMessage("분석이 완료되었습니다.")
+    
+    // 분석 완료 시 결과 패널/모달 자동 열기
+    if (window.innerWidth < 768) {
+      // 모바일: 결과 모달 열기
+      setIsMobileResultsOpen(true)
+    } else {
+      // 데스크톱: 결과 패널이 접혀있다면 펼치기
+      setIsResultPanelCollapsed(false)
+    }
     
     // 초기 AI 메시지 추가
     addMessage(
@@ -587,6 +599,72 @@ export default function HomePage() {
     <div className="min-h-screen md:h-screen flex md:overflow-hidden bg-gray-50">
       {/* 토스트 알림 */}
       <SimpleToastContainer toasts={toasts} onRemove={removeToast} />
+      
+      {/* Mobile Analysis Results Modal */}
+      {isMobileResultsOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
+          <div className="h-full bg-white flex flex-col">
+            {/* Modal Header */}
+            <div className="bg-emerald-600 text-white p-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">AI 분석 결과</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileResultsOpen(false)}
+                className="text-white hover:bg-emerald-700 p-2"
+              >
+                ✕
+              </Button>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {isChatMode ? (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">💬 채팅 도움말</h3>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-800 mb-2">💡 이런 질문을 해보세요</h4>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• "두통이 있어요"</li>
+                      <li>• "고혈압 관리 방법을 알려주세요"</li>
+                      <li>• "당뇨병 식단 관리는 어떻게 하나요?"</li>
+                      <li>• "감기 증상 완화 방법"</li>
+                      <li>• "약물 복용 시 주의사항"</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <h4 className="font-medium text-red-800 mb-2">🚨 응급상황 시</h4>
+                    <p className="text-sm text-red-700">
+                      심한 통증, 호흡곤란, 의식불명 등의 응급증상이 있다면 
+                      <strong> 즉시 119에 신고</strong>하거나 가까운 응급실을 방문하세요.
+                    </p>
+                  </div>
+
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-medium text-gray-800 mb-2">⚠️ 중요 안내</h4>
+                    <p className="text-sm text-gray-700">
+                      이 상담은 일반적인 의학 정보 제공을 목적으로 하며, 
+                      정확한 진단이나 치료를 대체할 수 없습니다. 
+                      구체적인 건강 문제는 의료진과 상담하세요.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <AnalysisResults
+                  isAnalyzing={isAnalyzing}
+                  analysisData={analysisData}
+                  hasError={!!analysisError}
+                  errorMessage={analysisError || undefined}
+                  progress={analysisProgress}
+                  onTextDragToChat={handleTextDragToChat}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div 
@@ -713,10 +791,7 @@ export default function HomePage() {
                       <SelectValue placeholder="모델 선택" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gpt-4o">GPT-4o</SelectItem>
                       <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
-                      <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                      <SelectItem value="claude-3.5-sonnet">Claude 3.5 Sonnet</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -771,22 +846,7 @@ export default function HomePage() {
                         </div>
                       )}
                     </div>
-                    
-                    {/* 설정 버튼 - 데스크톱에서만 표시 */}
-                    <Button variant="ghost" size="sm" className="p-2 hidden md:flex">
-                      <Settings className="w-4 h-4" />
-                    </Button>
-                    
-                    {/* 로그아웃 버튼 */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={logout}
-                      className="text-gray-600 hover:text-red-600 text-xs md:text-sm"
-                    >
-                      <LogOut className="w-3 md:w-4 h-3 md:h-4 mr-1" />
-                      <span className="hidden md:inline">로그아웃</span>
-                    </Button>
+
                   </div>
                 ) : (
                   <div className="flex items-center space-x-2">
@@ -805,7 +865,7 @@ export default function HomePage() {
               
               {/* Mobile User Menu */}
               {user && (
-                <div className="md:hidden flex items-center space-x-2">
+                <div className="md:hidden flex items-center">
                   <div className="flex items-center">
                     {user.profileImage ? (
                       <img
@@ -822,14 +882,6 @@ export default function HomePage() {
                       </div>
                     )}
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={logout}
-                    className="text-gray-600 hover:text-red-600 text-xs p-1"
-                  >
-                    <LogOut className="w-3 h-3" />
-                  </Button>
                 </div>
               )}
               
@@ -970,6 +1022,20 @@ export default function HomePage() {
                   )}
                 </div>
               </div>
+
+              {/* Mobile Analysis Results Toggle Button */}
+              {showAnalysis && (
+                <div className="border-t p-2 bg-gray-50 flex-shrink-0 md:hidden">
+                  <Button
+                    onClick={() => setIsMobileResultsOpen(true)}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center space-x-2"
+                    size="sm"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>AI 분석 결과 보기</span>
+                  </Button>
+                </div>
+              )}
 
               {/* Chat Input */}
               <div className="border-t p-2 md:p-4 bg-white flex-shrink-0">

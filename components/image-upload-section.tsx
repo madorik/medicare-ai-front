@@ -408,9 +408,6 @@ export default function ImageUploadSection({
                 </div>
                           ) : (
                 <div className="space-y-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-blue-100 rounded-xl flex items-center justify-center mx-auto">
-                    <Camera className="w-8 h-8 text-emerald-600" />
-                  </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">
                       파일을 여기에 드래그하거나 클릭하여 업로드
