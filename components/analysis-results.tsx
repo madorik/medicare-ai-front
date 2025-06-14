@@ -55,7 +55,16 @@ export default function AnalysisResults({
     textDragHandlers, 
     onLabelClick, 
     clearSelection 
-  } = useTextDrag({})
+  } = useTextDrag({
+    onTextSelected: (text: string) => {
+      // 텍스트 선택 시에는 아직 채팅에 추가하지 않음 (라벨 클릭 시에만 추가)
+      console.log('텍스트 선택됨:', text)
+    },
+    onTextCleared: () => {
+      console.log('텍스트 선택 해제됨')
+    },
+    onTextDragToChat: onTextDragToChat
+  })
 
   // 자동 스크롤 처리
   useEffect(() => {
@@ -380,19 +389,12 @@ export default function AnalysisResults({
       {/* To Chat 라벨 */}
       {showLabel && selectedText && labelPosition && (
         <div 
-          className="fixed z-50 bg-emerald-600 text-white px-3 py-2 rounded-lg shadow-lg cursor-pointer hover:bg-emerald-700 transition-all duration-200 transform scale-95 hover:scale-100"
+          className="text-drag-label fixed z-50 bg-emerald-600 text-white px-3 py-2 rounded-lg shadow-lg cursor-pointer hover:bg-emerald-700 transition-all duration-200 transform scale-95 hover:scale-100"
           style={{
             left: labelPosition.x - 50,
             top: labelPosition.y - 60,
           }}
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            if (selectedText && onTextDragToChat) {
-              onTextDragToChat(selectedText.trim())
-              clearSelection()
-            }
-          }}
+          onClick={onLabelClick}
           onMouseDown={(e) => {
             e.preventDefault()
             e.stopPropagation()
@@ -401,6 +403,7 @@ export default function AnalysisResults({
             e.preventDefault()
             e.stopPropagation()
           }}
+
         >
           <div className="flex items-center space-x-2">
             <MessageSquare className="w-4 h-4" />

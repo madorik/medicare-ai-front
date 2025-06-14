@@ -860,29 +860,11 @@ export default function HomePage() {
                           message.role === "user" ? "flex-row-reverse space-x-reverse" : ""
                         }`}
                       >
-                        <div
-                          className={`w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            message.role === "user" ? "bg-emerald-100" : "bg-blue-100"
-                          }`}
-                        >
-                          {message.role === "user" ? (
-                            user.profileImage ? (
-                              <img
-                                src={user.profileImage}
-                                alt="프로필"
-                                className="w-6 md:w-8 h-6 md:h-8 rounded-full border border-gray-300"
-                                onError={(e) => {
-                                  // 이미지 로드 실패 시 기본 아바타로 교체
-                                  e.currentTarget.style.display = 'none'
-                                }}
-                              />
-                            ) : (
-                              <User className="w-3 md:w-5 h-3 md:h-5 text-emerald-600" />
-                            )
-                          ) : (
+                        {message.role === "assistant" && (
+                          <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-100">
                             <Bot className="w-3 md:w-5 h-3 md:h-5 text-blue-600" />
-                          )}
-                        </div>
+                          </div>
+                        )}
                         <div
                           className={`p-2 md:p-3 rounded-lg ${
                             message.role === "user" ? "bg-emerald-100 text-emerald-900" : "bg-gray-100 text-gray-900"

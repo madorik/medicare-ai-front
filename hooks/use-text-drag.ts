@@ -3,6 +3,7 @@ import { useCallback, useRef, useState, useEffect } from 'react'
 interface UseTextDragOptions {
   onTextSelected?: (text: string, position: { x: number; y: number }) => void
   onTextCleared?: () => void
+  onTextDragToChat?: (text: string) => void
 }
 
 export const useTextDrag = (options: UseTextDragOptions = {}) => {
@@ -117,28 +118,35 @@ export const useTextDrag = (options: UseTextDragOptions = {}) => {
 
 
 
-  // 마우스 오버 시 라벨 표시
+  // 마우스 오버 시 라벨 표시 (라벨이 이미 표시된 경우 무시)
   const handleMouseEnter = useCallback(() => {
-    if (selectedText) {
+    if (selectedText && !showLabel) {
       setShowLabel(true)
     }
-  }, [selectedText])
+  }, [selectedText, showLabel])
 
-  // 마우스 아웃 시 라벨 숨김
-  const handleMouseLeave = useCallback(() => {
+  // 마우스 아웃 시 라벨 숨김 (라벨 영역이 아닌 경우에만)
+  const handleMouseLeave = useCallback((event: React.MouseEvent) => {
+    // 라벨 영역으로 마우스가 이동하는 경우 숨기지 않음
+    const relatedTarget = event.relatedTarget as HTMLElement
+    if (relatedTarget && relatedTarget.closest('.text-drag-label')) {
+      return
+    }
     setShowLabel(false)
   }, [])
 
   // 라벨 클릭 시 텍스트 전송
   const handleLabelClick = useCallback(() => {
-    if (selectedText && options.onTextSelected) {
+    if (selectedText) {
       // 선택 해제
       if (selectionRef.current) {
         selectionRef.current.removeAllRanges()
       }
       
-      // 텍스트 전송을 위한 콜백 호출
-      options.onTextSelected(selectedText, labelPosition || { x: 0, y: 0 })
+      // 텍스트를 채팅에 추가하는 콜백 호출
+      if (options.onTextDragToChat) {
+        options.onTextDragToChat(selectedText.trim())
+      }
       
       // 상태 초기화
       setSelectedText('')
@@ -187,8 +195,6 @@ export const useTextDrag = (options: UseTextDragOptions = {}) => {
       onMouseDown: handleMouseDown,
       onMouseMove: handleMouseMove,
       onMouseUp: handleMouseUp,
-      onMouseEnter: handleMouseEnter,
-      onMouseLeave: handleMouseLeave,
       onDoubleClick: handleDoubleClick,
     },
     onLabelClick: handleLabelClick,
