@@ -336,114 +336,154 @@ export default function ImageUploadSection({
   }
 
   return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="flex items-center justify-center gap-2">
-          <Upload className="w-5 h-5" />
-          진료 기록 업로드
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div 
-          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-emerald-400 transition-colors"
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
-          {error ? (
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-red-600" />
-              </div>
-              <p className="text-red-600 font-medium">{error}</p>
-              <Button
-                variant="outline"
-                onClick={resetUpload}
-              >
-                다시 시도
-              </Button>
-            </div>
-          ) : isUploading ? (
-            <div className="flex flex-col items-center space-y-4">
-              <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-              <p className="text-gray-600">파일을 업로드하고 분석하고 있습니다...</p>
-              <p className="text-sm text-gray-500">실시간으로 분석 결과가 표시됩니다</p>
-            </div>
-          ) : uploadedFile ? (
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-green-600 font-medium">업로드 완료: {uploadedFile.name}</p>
-                <p className="text-sm text-gray-500">
-                  크기: {(uploadedFile.size / 1024 / 1024).toFixed(2)}MB
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                onClick={resetUpload}
-              >
-                다른 파일 업로드
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto">
-                <Camera className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-lg font-medium text-gray-900 mb-2">파일을 드래그하거나 클릭하여 업로드</p>
-                <p className="text-sm text-gray-500">
-                  {supportedFormats && Array.isArray(supportedFormats) && supportedFormats.length > 0
-                    ? `${supportedFormats.map(f => f.extension).join(', ')} 파일 지원 (최대 5MB)`
-                    : 'JPG, PNG, PDF 파일 지원 (최대 5MB)'
-                  }
-                </p>
-              </div>
-              <input
-                ref={fileInputRef}
-                id="file-upload"
-                type="file"
-                accept={getAcceptTypes()}
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-              <Button
-                onClick={() => {
-                  // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
-                  if (!checkAuthentication()) {
-                    return
-                  }
-                  fileInputRef.current?.click()
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                파일 선택하기
-              </Button>
-            </div>
-          )}
+    <div className="w-full">
+      {/* Upload Card */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+        {/* Content */}
+        <div className="p-6">
+                      <div 
+              className={`
+                relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300
+                ${error ? 'border-red-300 bg-red-50' : 
+                  isUploading ? 'border-emerald-300 bg-emerald-50' :
+                  uploadedFile ? 'border-green-300 bg-green-50' :
+                  'border-gray-300 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50/50'
+                }
+              `}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+                          {error ? (
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-red-700 mb-1">업로드 오류</h3>
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={resetUpload}
+                    className="border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    다시 시도
+                  </Button>
+                </div>
+              ) : isUploading ? (
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-emerald-600" />
+                    </div>
+                    <div className="absolute -inset-1 border-2 border-emerald-200 rounded-xl animate-pulse"></div>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-emerald-700 mb-1">분석 진행 중</h3>
+                    <p className="text-sm text-emerald-600 mb-1">AI가 파일을 분석하고 있습니다...</p>
+                    <p className="text-xs text-emerald-500">실시간으로 분석 결과가 표시됩니다</p>
+                  </div>
+                </div>
+              ) : uploadedFile ? (
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <FileText className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-green-700 mb-1">업로드 완료</h3>
+                    <p className="text-sm text-green-600 font-medium">{uploadedFile.name}</p>
+                    <p className="text-xs text-green-500">
+                      크기: {(uploadedFile.size / 1024 / 1024).toFixed(2)}MB
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={resetUpload}
+                    className="border-green-300 text-green-600 hover:bg-green-50"
+                  >
+                    다른 파일 업로드
+                  </Button>
+                </div>
+                          ) : (
+                <div className="space-y-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-100 to-blue-100 rounded-xl flex items-center justify-center mx-auto">
+                    <Camera className="w-8 h-8 text-emerald-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      파일을 여기에 드래그하거나 클릭하여 업로드
+                    </h3>
+                    
+                    {/* Supported File Types */}
+                    <div className="flex justify-center space-x-3 mb-4">
+                      <div className="flex items-center space-x-1 bg-white rounded-lg px-2 py-1 shadow-sm">
+                        <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
+                          <FileText className="w-3 h-3 text-blue-600" />
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">PDF</span>
+                      </div>
+                      <div className="flex items-center space-x-1 bg-white rounded-lg px-2 py-1 shadow-sm">
+                        <div className="w-6 h-6 bg-green-100 rounded flex items-center justify-center">
+                          <Camera className="w-3 h-3 text-green-600" />
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">JPG</span>
+                      </div>
+                      <div className="flex items-center space-x-1 bg-white rounded-lg px-2 py-1 shadow-sm">
+                        <div className="w-6 h-6 bg-purple-100 rounded flex items-center justify-center">
+                          <Camera className="w-3 h-3 text-purple-600" />
+                        </div>
+                        <span className="text-xs font-medium text-gray-700">PNG</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <input
+                    ref={fileInputRef}
+                    id="file-upload"
+                    type="file"
+                    accept={getAcceptTypes()}
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    onClick={() => {
+                      // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
+                      if (!checkAuthentication()) {
+                        return
+                      }
+                      fileInputRef.current?.click()
+                    }}
+                    className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    파일 선택하기
+                  </Button>
+                </div>
+            )}
+          </div>
         </div>
-      </CardContent>
-      
-      {/* 개인정보 보호 안내 */}
-      <div className="px-6 pb-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Shield className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-blue-800 mb-1">
-                개인정보 보호 안내
-              </h4>
-              <p className="text-xs text-blue-700 leading-relaxed">
-                업로드된 진료 기록은 <strong>서버에 저장되지 않으며</strong>, 분석 완료 후 즉시 삭제됩니다. <br/>
-                모든 데이터는 메모리에서만 처리되어 개인정보가 안전하게 보호됩니다.
-              </p>
+
+        {/* Privacy Notice */}
+        <div className="px-6 pb-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Shield className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-blue-800 mb-1">
+                  🔒 개인정보 보호 안내
+                </h4>
+                <p className="text-xs text-blue-700 leading-relaxed">
+                  업로드된 진료 기록은 <strong>서버에 저장되지 않으며</strong>, 분석 완료 후 즉시 삭제됩니다. 
+                </p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   )
 }

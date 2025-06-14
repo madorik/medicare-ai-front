@@ -28,6 +28,7 @@ import {
   Bot,
   LogOut,
   Settings,
+  Shield,
 } from "lucide-react"
 import type React from "react"
 
@@ -827,21 +828,60 @@ export default function HomePage() {
         <div className="flex-1 flex overflow-hidden">
           {/* Upload or Chat Area */}
           {!showAnalysis ? (
-            <div className="w-full p-4 md:p-6 overflow-y-auto">
-              <div className="max-w-2xl mx-auto">
-                {/* Description */}
-                <p className="text-gray-600 text-base md:text-lg mb-8 md:mb-12 text-center px-4">
-                AI가 당신의 진료 기록을 대신 분석해드립니다.
-                </p>
+            <div className="w-full h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
+              {/* Hero Section */}
+              <div className="flex-1 flex flex-col justify-center py-6 md:py-8">
+                <div className="max-w-6xl mx-auto px-4 md:px-6 text-center">
+                  {/* Main Heading */}
+                  <div className="mb-6">
+                    <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+                      <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                        AI 의료 분석 새로운 경험
+                      </span>
+                    </h1>
+                    <p className="text-sm md:text-base text-gray-500 max-w-2xl mx-auto mb-6">
+                      처방전, 검사 결과지, 진단서를 업로드하면 AI가 즉시 분석하여 상세한 의료 정보를 제공합니다
+                    </p>
+                  </div>
 
-                {/* Upload Component */}
-                <ImageUploadSection
-                  onAnalysisStart={handleAnalysisStart}
-                  onAnalysisResult={handleAnalysisResult}
-                  onAnalysisComplete={handleAnalysisComplete}
-                  onError={handleAnalysisError}
-                  onStatusUpdate={handleStatusUpdate}
-                />
+                  {/* Upload Section */}
+                  <div className="mb-6">
+                    <div className="max-w-4xl mx-auto">
+                      <ImageUploadSection
+                        onAnalysisStart={handleAnalysisStart}
+                        onAnalysisResult={handleAnalysisResult}
+                        onAnalysisComplete={handleAnalysisComplete}
+                        onError={handleAnalysisError}
+                        onStatusUpdate={handleStatusUpdate}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
+                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <Brain className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">AI 분석</h3>
+                      <p className="text-xs text-gray-600">최신 AI 기술로 정확하고 빠른 의료 기록 분석</p>
+                    </div>
+                    <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <Shield className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">개인정보 보호</h3>
+                      <p className="text-xs text-gray-600">업로드된 파일은 분석 후 즉시 삭제되어 안전합니다</p>
+                    </div>
+                    <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <FileText className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">다양한 형식</h3>
+                      <p className="text-xs text-gray-600">JPG, PNG, PDF 등 다양한 의료 문서 형식 지원</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ) : (
