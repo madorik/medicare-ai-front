@@ -611,7 +611,6 @@ export default function HomePage() {
             {!isSidebarCollapsed && (
               <div className="flex items-center space-x-2">
                 <Stethoscope className="w-6 h-6 text-emerald-400" />
-                <span className="font-semibold text-sm md:text-base">MediCare AI</span>
               </div>
             )}
             <Button
