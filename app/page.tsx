@@ -584,7 +584,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-gray-50">
+    <div className="min-h-screen md:h-screen flex md:overflow-hidden bg-gray-50">
       {/* 토스트 알림 */}
       <SimpleToastContainer toasts={toasts} onRemove={removeToast} />
       {/* Mobile Sidebar Overlay */}
@@ -688,7 +688,7 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-4 md:px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -851,12 +851,12 @@ export default function HomePage() {
         </header>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-auto md:overflow-hidden">
           {/* Upload or Chat Area */}
           {!showAnalysis ? (
-            <div className="w-full h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col">
+            <div className="w-full h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col overflow-auto md:overflow-hidden">
               {/* Hero Section */}
-              <div className="flex-1 flex flex-col justify-center py-6 md:py-8">
+              <div className="flex-1 flex flex-col justify-start md:justify-center py-6 md:py-8">
                 <div className="max-w-6xl mx-auto px-4 md:px-6 text-center">
                   {/* Main Heading */}
                   <div className="mb-6">
@@ -912,7 +912,7 @@ export default function HomePage() {
             </div>
           ) : (
             // Chat Interface
-            <div className="flex-1 flex flex-col bg-white overflow-hidden">
+            <div className="flex-1 flex flex-col bg-white overflow-auto md:overflow-hidden">
               {/* Chat Messages */}
               <div className="flex-1 overflow-y-auto p-2 md:p-4" ref={chatContainerRef}>
                 <div className="space-y-4 md:space-y-6">

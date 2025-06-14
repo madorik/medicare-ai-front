@@ -91,6 +91,26 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* 모바일 스크롤 개선 */
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch; /* iOS에서 부드러운 스크롤 */
+  }
+  
+  @media (max-width: 768px) {
+    html, body {
+      height: auto;
+      min-height: 100vh;
+      overflow-y: auto;
+    }
+    
+    /* 모바일에서 터치 스크롤 개선 */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 }
 
 /* 실시간 분석 결과 애니메이션 */
