@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { SimpleToastContainer } from "@/components/ui/simple-toast"
 import ImageUploadSection from "@/components/image-upload-section"
 import AnalysisResults from "@/components/analysis-results"
+import ContactModal from "@/components/contact-modal"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import {
@@ -29,6 +30,7 @@ import {
   LogOut,
   Settings,
   Shield,
+  Mail,
 } from "lucide-react"
 import type React from "react"
 
@@ -658,6 +660,20 @@ export default function HomePage() {
                     <br />
                     <p>처방전, 검사 결과지, 진단서 등을 업로드하여 AI 분석을 받아보세요.</p>
                   </div>
+                  
+                  {/* Contact 버튼 */}
+                  <div className="mt-4">
+                    <ContactModal>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full text-gray-600 hover:text-emerald-600 border-gray-600 hover:border-emerald-600"
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        개발자에게 문의
+                      </Button>
+                    </ContactModal>
+                  </div>
                 </>
               )}
             </div>
@@ -717,6 +733,17 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-2 md:space-x-4">
               <nav className="hidden md:flex items-center space-x-6">
+                {/* Contact 메뉴 */}
+                <ContactModal>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-600 hover:text-emerald-600 transition-colors"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Contact
+                  </Button>
+                </ContactModal>
            
                 {/* 로그인 상태에 따른 UI 분기 */}
                 {isLoading ? (
