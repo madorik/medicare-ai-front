@@ -164,6 +164,7 @@ export default function HomePage() {
     setIsAnalyzing(false)
     setAnalysisProgress(100)
     setStatusMessage("분석이 완료되었습니다.")
+    
     // 초기 AI 메시지 추가
     addMessage(
       "assistant",
@@ -993,18 +994,23 @@ export default function HomePage() {
                   {/* Results Panel Header */}
                   <div className="bg-white border-b border-gray-200 p-4 flex-shrink-0">
                     <div className="flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsResultPanelCollapsed(!isResultPanelCollapsed)}
-                        className="text-gray-500 hover:text-gray-700 p-1"
-                      >
-                        {isResultPanelCollapsed ? (
-                          <ChevronLeft className="w-4 h-4" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4" />
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsResultPanelCollapsed(!isResultPanelCollapsed)}
+                          className="text-gray-500 hover:text-gray-700 p-1"
+                        >
+                          {isResultPanelCollapsed ? (
+                            <ChevronLeft className="w-4 h-4" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4" />
+                          )}
+                        </Button>
+                        {!isResultPanelCollapsed && (
+                          <h2 className="text-lg font-semibold text-gray-900">AI 분석 결과</h2>
                         )}
-                      </Button>
+                      </div>
                     </div>
                   </div>
 
