@@ -271,7 +271,6 @@
   </div>
 
   <script>
-    console.log('스크립트 로드됨');
     
     const uploadArea = document.getElementById('uploadArea');
     const uploadButton = document.getElementById('uploadButton');
@@ -284,18 +283,14 @@
     const result = document.getElementById('result');
     const resultContent = document.getElementById('resultContent');
 
-    console.log('요소들 로드됨:', { uploadArea, uploadButton, fileInput });
-
     // 업로드 버튼 클릭 이벤트
     uploadButton.addEventListener('click', (e) => {
       e.preventDefault();
-      console.log('업로드 버튼 클릭됨');
       fileInput.click();
     });
 
     // 업로드 영역 클릭 이벤트
     uploadArea.addEventListener('click', (e) => {
-      console.log('업로드 영역 클릭됨');
       if (e.target !== uploadButton) {
         fileInput.click();
       }
@@ -315,7 +310,6 @@
       e.preventDefault();
       uploadArea.classList.remove('dragover');
       const files = e.dataTransfer.files;
-      console.log('파일 드롭됨:', files);
       if (files.length > 0) {
         handleFile(files[0]);
       }
@@ -323,7 +317,6 @@
 
     // 파일 선택 이벤트
     fileInput.addEventListener('change', (e) => {
-      console.log('파일 선택됨:', e.target.files);
       if (e.target.files.length > 0) {
         handleFile(e.target.files[0]);
       }

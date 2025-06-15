@@ -56,12 +56,6 @@ export default function HomePage() {
 
   // 토큰 상태 디버깅
   useEffect(() => {
-    console.log('🔍 토큰 상태 확인:', {
-      user: !!user,
-      token: !!token,
-      isLoading,
-      localStorage: !!localStorage.getItem('auth_token')
-    })
   }, [user, token, isLoading])
 
   // 파일 업로드 및 분석 관련 상태
@@ -106,6 +100,10 @@ export default function HomePage() {
   
   // 토스트 메시지 상태
   const [toasts, setToasts] = useState<ToastMessage[]>([])
+
+  // 프로필 드롭다운 상태
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
+  const profileDropdownRef = useRef<HTMLDivElement>(null)
 
   // inputMessage 상태 변경 추적 (디버깅용)
   useEffect(() => {
@@ -155,12 +153,6 @@ export default function HomePage() {
 
   // 실시간 분석 결과 핸들러
   const handleAnalysisResult = (data: string, tokenCount?: number, progress?: number) => {
-    console.log('분석 결과 업데이트:', {
-      textLength: data.length,
-      progress: progress,
-      preview: data.substring(0, 50) + (data.length > 50 ? '...' : '')
-    })
-    
     setAnalysisData(data)
     if (progress !== undefined) setAnalysisProgress(progress)
   }
@@ -197,7 +189,6 @@ export default function HomePage() {
   // 상태 업데이트 핸들러
   const handleStatusUpdate = (status: string, type?: 'info' | 'warning' | 'error' | 'success') => {
     setStatusMessage(status)
-    console.log(`[${type?.toUpperCase() || 'INFO'}] ${status}`)
   }
 
   // 새 분석 시작
@@ -274,7 +265,6 @@ export default function HomePage() {
       // AI 응답 처리
       await streamMessage(message)
     } catch (error) {
-      console.error('sendTextMessage 오류:', error)
       const errorMsg = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다."
       addMessage("assistant", `⚠️ 오류: ${errorMsg}`)
     } finally {
@@ -288,18 +278,10 @@ export default function HomePage() {
     const currentMessage = inputMessage.trim()
     if (!currentMessage || isStreaming) return
 
-    console.log('📤 메시지 전송 시도:', currentMessage)
-
     // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
     const currentToken = token || localStorage.getItem('auth_token')
-    console.log('🔑 handleSendMessage 토큰 확인:', {
-      contextToken: !!token,
-      localStorageToken: !!localStorage.getItem('auth_token'),
-      finalToken: !!currentToken
-    })
     
     if (!currentToken) {
-      console.error('❌ handleSendMessage: 토큰이 없습니다!')
       addErrorMessage('채팅을 위해 로그인이 필요합니다.')
       setTimeout(() => {
         router.push('/login?error=auth_required&message=채팅을 위해 로그인이 필요합니다')
@@ -324,7 +306,6 @@ export default function HomePage() {
     try {
       await streamMessage(currentMessage)
     } catch (error) {
-      console.error('메시지 전송 오류:', error)
       addErrorMessage('메시지 전송 중 오류가 발생했습니다.')
     } finally {
       setIsStreaming(false)
@@ -334,20 +315,11 @@ export default function HomePage() {
 
   // SSE 스트리밍 메시지 (9001 서버 연동)
   const streamMessage = async (message: string) => {
-    console.log('🔄 streamMessage 호출')
-
     try {
       // AuthContext의 token 사용 (localStorage fallback)
       const authToken = token || localStorage.getItem('auth_token')
       
-      console.log('🔑 토큰 확인:', {
-        contextToken: !!token,
-        localStorageToken: !!localStorage.getItem('auth_token'),
-        finalToken: !!authToken
-      })
-      
       if (!authToken) {
-        console.error('❌ 토큰이 없습니다!')
         throw new Error('인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.')
       }
       
@@ -356,9 +328,6 @@ export default function HomePage() {
         role: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.content || '' // Ensure content is a non-null string
       }))
-      
-      console.log('전송할 채팅 히스토리:', chatHistory)
-      console.log('현재 메시지:', message)
       
       const response = await fetch(`${API_BASE_URL}/chat/stream`, {
         method: 'POST',
@@ -375,11 +344,6 @@ export default function HomePage() {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('API 응답 오류:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText
-        })
         throw new Error(`스트리밍 요청 실패: ${response.status} - ${errorText}`)
       }
 
@@ -410,7 +374,6 @@ export default function HomePage() {
                 const data = JSON.parse(line.slice(6))
                 
                 if (data.error) {
-                  console.error('서버에서 받은 에러:', data.error)
                   if (!data.error.includes('invalid content')) {
                     addErrorMessage(data.error)
                   }
@@ -451,28 +414,21 @@ export default function HomePage() {
                     ))
                   }
                 } else {
-                  console.warn('Received null or undefined content:', data);
-                  // 에러 메시지를 표시하지 않고 그냥 무시
+                  // null/undefined content 무시
                 }
                 
                 if (data.done) {
                   // 응답 완료
-                  console.log('채팅 응답 완료')
                   setIsTyping(false)
                   return
                 }
 
                 // Handle invalid content error gracefully
                 if (data.error && data.error.includes('invalid content')) {
-                  console.warn('Invalid content received, not displaying in chat.')
                   return
                 }
               } catch (e) {
-                // JSON 파싱 오류 무시하되 로깅은 유지
-                console.warn('JSON 파싱 오류 (무시됨):', {
-                  line: line,
-                  error: e instanceof Error ? e.message : String(e)
-                })
+                // JSON 파싱 오류 무시
               }
             }
           }
@@ -481,42 +437,27 @@ export default function HomePage() {
         reader.releaseLock()
       }
     } catch (error) {
-      console.error('채팅 오류:', error)
-      
-      // 상세한 에러 정보 로깅
-      if (error instanceof Error) {
-        console.error('에러 상세:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack
-        })
-      }
-      
       // 인증 오류인 경우 로그인 페이지로 리다이렉트
       if (error instanceof Error && (error.message.includes('인증') || error.message.includes('401') || error.message.includes('403'))) {
-        console.log('🔐 인증 오류 감지, 로그인 페이지로 이동')
         addErrorMessage("인증이 만료되었습니다. 다시 로그인해주세요.")
         setTimeout(() => {
           router.push('/login')
         }, 2000)
       } else {
         // 오류 메시지 표시
-        console.error('❌ 채팅 오류 발생:', error)
         const errorMsg = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다."
         addMessage("assistant", `⚠️ 오류: ${errorMsg}`)
       }
     } finally {
-      console.log('🏁 스트리밍 상태 초기화')
       setIsStreaming(false)
       setIsTyping(false)
     }
   }
 
-  // 에러 메시지 추가 (콘솔에만 로깅)
+  // 에러 메시지 추가
   const addErrorMessage = (errorText: string) => {
     // "invalid content" 에러는 표시하지 않음
     if (errorText.includes('invalid content')) {
-      console.warn('Invalid content 에러 무시:', errorText)
       return
     }
     
@@ -529,6 +470,35 @@ export default function HomePage() {
     }
     setMessages(prev => [...prev, errorMessage])
   }
+
+  // 로그아웃 처리 함수
+  const handleLogout = async () => {
+    try {
+      await logout()
+      setIsProfileDropdownOpen(false)
+      addToast('로그아웃되었습니다.', 'success')
+      router.push('/')
+    } catch (error) {
+      addToast('로그아웃 중 오류가 발생했습니다.', 'error')
+    }
+  }
+
+  // 프로필 드롭다운 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target as Node)) {
+        setIsProfileDropdownOpen(false)
+      }
+    }
+
+    if (isProfileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isProfileDropdownOpen])
 
   // 리사이징 이벤트 핸들러
   const startResizing = (e: React.MouseEvent) => {
@@ -827,22 +797,70 @@ export default function HomePage() {
                   </div>
                 ) : user ? (
                   <div className="flex items-center space-x-3">
-                    {/* 사용자 프로필 */}
-                    <div className="flex items-center">
-                      {user.profileImage ? (
-                        <img
-                          src={user.profileImage}
-                          alt="프로필"
-                          className="w-8 h-8 rounded-full border border-gray-300"
-                          onError={(e) => {
-                            // 이미지 로드 실패 시 기본 아바타로 교체
-                            e.currentTarget.style.display = 'none'
-                          }}
-                        />
-                      ) : null}
-                      {!user.profileImage && (
-                        <div className="w-8 h-8 rounded-full border border-gray-300 bg-emerald-100 flex items-center justify-center">
-                          <User className="w-4 h-4 text-emerald-600" />
+                    {/* 사용자 프로필 드롭다운 */}
+                    <div className="relative" ref={profileDropdownRef}>
+                      <button
+                        onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                        className="flex items-center space-x-2 hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                      >
+                        {user.profileImage ? (
+                          <img
+                            src={user.profileImage}
+                            alt="프로필"
+                            className="w-8 h-8 rounded-full border border-gray-300"
+                            onError={(e) => {
+                              // 이미지 로드 실패 시 기본 아바타로 교체
+                              e.currentTarget.style.display = 'none'
+                            }}
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full border border-gray-300 bg-emerald-100 flex items-center justify-center">
+                            <User className="w-4 h-4 text-emerald-600" />
+                          </div>
+                        )}
+                        <span className="text-sm font-medium text-gray-700 hidden md:block">
+                          {user.name || user.email}
+                        </span>
+                      </button>
+
+                      {/* 프로필 드롭다운 메뉴 */}
+                      {isProfileDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                          {/* 사용자 정보 */}
+                          <div className="px-4 py-3 border-b border-gray-100">
+                            <div className="flex items-center space-x-3">
+                              {user.profileImage ? (
+                                <img
+                                  src={user.profileImage}
+                                  alt="프로필"
+                                  className="w-10 h-10 rounded-full border border-gray-300"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-full border border-gray-300 bg-emerald-100 flex items-center justify-center">
+                                  <User className="w-5 h-5 text-emerald-600" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">
+                                  {user.name || '사용자'}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {user.email}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 메뉴 항목들 */}
+                          <div className="py-1">
+                            <button
+                              onClick={handleLogout}
+                              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                            >
+                              <LogOut className="w-4 h-4" />
+                              <span>로그아웃</span>
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -865,8 +883,11 @@ export default function HomePage() {
               
               {/* Mobile User Menu */}
               {user && (
-                <div className="md:hidden flex items-center">
-                  <div className="flex items-center">
+                <div className="md:hidden flex items-center relative" ref={profileDropdownRef}>
+                  <button
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    className="flex items-center p-1 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
                     {user.profileImage ? (
                       <img
                         src={user.profileImage}
@@ -881,7 +902,48 @@ export default function HomePage() {
                         <User className="w-3 h-3 text-emerald-600" />
                       </div>
                     )}
-                  </div>
+                  </button>
+
+                  {/* 모바일 프로필 드롭다운 메뉴 */}
+                  {isProfileDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      {/* 사용자 정보 */}
+                      <div className="px-3 py-2 border-b border-gray-100">
+                        <div className="flex items-center space-x-2">
+                          {user.profileImage ? (
+                            <img
+                              src={user.profileImage}
+                              alt="프로필"
+                              className="w-8 h-8 rounded-full border border-gray-300"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full border border-gray-300 bg-emerald-100 flex items-center justify-center">
+                              <User className="w-4 h-4 text-emerald-600" />
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-900 truncate">
+                              {user.name || '사용자'}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 메뉴 항목들 */}
+                      <div className="py-1">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                        >
+                          <LogOut className="w-3 h-3" />
+                          <span>로그아웃</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               

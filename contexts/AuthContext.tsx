@@ -20,7 +20,7 @@ interface AuthContextType {
   token: string | null
   isLoading: boolean
   login: (token: string) => Promise<void>
-  logout: () => void
+  logout: () => Promise<void>
   checkAuth: () => Promise<void>
 }
 
@@ -32,6 +32,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   
   const backendURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9001'
+
+  // 쿠키 삭제 헬퍼 함수
+  const clearAllCookies = () => {
+    const cookieNames = ['auth_token', 'token', 'access_token', 'jwt', 'session_token', 'refresh_token']
+    const domains = [window.location.hostname, `.${window.location.hostname}`]
+    const paths = ['/', '/auth', '/api']
+    
+    cookieNames.forEach(name => {
+      paths.forEach(path => {
+        domains.forEach(domain => {
+          // 현재 도메인에서 삭제
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`
+          // 도메인 지정해서 삭제
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain};`
+        })
+      })
+    })
+  }
 
   // API 요청 헬퍼 함수 (Authorization 헤더 자동 추가)
   const apiRequest = async (url: string, options: RequestInit = {}) => {
@@ -106,11 +124,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         })
       }
     } catch (error) {
-      console.error('로그아웃 오류:', error)
+      // 에러 로깅 제거
     } finally {
+      // 상태 즉시 초기화
       setUser(null)
       setToken(null)
+      setIsLoading(false)
+      
+      // 모든 저장소 정리
       localStorage.removeItem('auth_token')
+      sessionStorage.clear()
+      
+      // 모든 관련 쿠키 삭제
+      clearAllCookies()
+      
+      // 강제 리로드로 완전한 상태 초기화
+      window.location.reload()
     }
   }
 
@@ -149,7 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(null)
         }
       } else {
-        console.log('저장된 토큰이 없음')
+        // 토큰 없음
       }
     } catch (error) {
       localStorage.removeItem('auth_token')

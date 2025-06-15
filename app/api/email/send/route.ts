@@ -44,14 +44,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 백엔드 API 호출로 이메일 전송
-    console.log('📧 새로운 이메일 전송 요청:', {
-      name: name,
-      email: email,
-      content: content,
-      timestamp: new Date().toISOString()
-    })
-
     try {
       // 백엔드 이메일 서비스 호출
       const backendResponse = await fetch(`${process.env.BACKEND_API_URL || 'http://localhost:9001'}/api/email/send`, {
@@ -75,11 +67,8 @@ export async function POST(request: NextRequest) {
       }
 
       const backendResult = await backendResponse.json()
-      console.log('✅ 백엔드 이메일 전송 성공:', backendResult)
 
     } catch (backendError) {
-      console.error('❌ 백엔드 API 호출 오류:', backendError)
-      
       // 백엔드 호출 실패 시 클라이언트에 에러 전달
       return NextResponse.json(
         { 
@@ -105,7 +94,6 @@ export async function POST(request: NextRequest) {
     )
 
   } catch (error) {
-    console.error('Email API 오류:', error)
     return NextResponse.json(
       { error: '이메일 전송 중 오류가 발생했습니다.' },
       { status: 500 }

@@ -19,10 +19,7 @@ export default function AuthSuccessPage() {
         const searchParams = window.location.search
         const hash = window.location.hash
         
-        console.log('=== Auth Success 페이지 디버그 ===')
-        console.log('현재 URL:', currentUrl)
-        console.log('Search Params:', searchParams)
-        console.log('Hash:', hash)
+        // Auth Success 페이지 디버그 정보
         
         // URL 파라미터 확인 (search params 및 hash 모두 확인)
         const urlParams = new URLSearchParams(searchParams)
@@ -45,10 +42,7 @@ export default function AuthSuccessPage() {
           allParams.set(`hash.${key}`, value)
         }
         
-        console.log('모든 파라미터:', Object.fromEntries(allParams))
-        
         if (token) {
-          console.log('✅ 토큰 발견:', token.substring(0, 20) + '...')
           
           // 토큰으로 로그인 처리
           await login(token)
@@ -61,7 +55,6 @@ export default function AuthSuccessPage() {
           
         } else if (retryCount < 3) {
           // 토큰이 없으면 몇 번 더 시도 (OAuth 리다이렉트 지연 고려)
-          console.log(`⏳ 토큰 없음, 재시도 중... (${retryCount + 1}/3)`)
           setRetryCount(prev => prev + 1)
           setDebugInfo(prev => [...prev, `재시도 ${retryCount + 1}: 토큰 없음`])
           
@@ -72,8 +65,6 @@ export default function AuthSuccessPage() {
           
         } else {
           // 3번 시도 후에도 토큰이 없으면 에러 처리
-          console.warn('❌ 최대 재시도 후에도 토큰을 찾을 수 없습니다')
-          console.warn('받은 파라미터:', Object.fromEntries(allParams))
           
           // 더 자세한 디버그 정보와 함께 로그인 페이지로
           const errorDetails = encodeURIComponent(`URL: ${currentUrl}, Params: ${JSON.stringify(Object.fromEntries(allParams))}`)
@@ -81,7 +72,6 @@ export default function AuthSuccessPage() {
         }
         
       } catch (error) {
-        console.error('로그인 처리 오류:', error)
         router.push('/login?error=login_failed')
       }
     }

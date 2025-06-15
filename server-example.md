@@ -99,8 +99,6 @@ app.post('/api/medical/analyze', upload.single('medicalFile'), async (req, res) 
 
     const analysisId = uuidv4();
     
-    console.log(`분석 시작: ${analysisId} - ${req.file.originalname}`);
-
     // SSE 헤더 설정
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -157,7 +155,6 @@ async function startMedicalAnalysis(analysisId, fileInfo, res) {
     for (let i = 0; i < analysisSteps.length; i++) {
       // 연결 상태 확인
       if (res.destroyed) {
-        console.log(`클라이언트 연결 해제: ${analysisId}`);
         break;
       }
 
@@ -175,12 +172,10 @@ async function startMedicalAnalysis(analysisId, fileInfo, res) {
       // SSE로 실시간 전송
       res.write(`data: ${JSON.stringify(progressData)}\n\n`);
       
-      console.log(`분석 진행 (${progressData.progress}%): ${analysisId} - ${progressData.content}`);
     }
 
     // 분석 완료 후 연결 종료
     res.end();
-    console.log(`분석 완료: ${analysisId}`);
 
   } catch (error) {
     console.error(`분석 오류 (${analysisId}):`, error);
@@ -219,12 +214,6 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`의료 분석 서버가 http://localhost:${PORT} 에서 실행 중입니다.`);
-  console.log('='.repeat(60));
-  console.log('사용 가능한 API 엔드포인트:');
-  console.log(`  POST /api/medical/analyze - 진료 기록 분석 (SSE)`);
-  console.log(`  GET  /api/medical/supported-formats - 지원 형식 조회`);
-  console.log('='.repeat(60));
   console.log('프론트엔드에서 파일을 업로드하면 실시간 분석이 시작됩니다.');
 });
 ```

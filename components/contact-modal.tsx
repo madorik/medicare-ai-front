@@ -78,7 +78,6 @@ export default function ContactModal({ children }: ContactModalProps) {
       }, 3000)
       
     } catch (error) {
-      console.error('메일 전송 실패:', error)
       setSubmitError(error instanceof Error ? error.message : '이메일 전송 중 오류가 발생했습니다.')
     } finally {
       setIsSubmitting(false)

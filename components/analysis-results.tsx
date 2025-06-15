@@ -60,10 +60,9 @@ export default function AnalysisResults({
   } = useTextDrag({
     onTextSelected: (text: string) => {
       // 텍스트 선택 시에는 아직 채팅에 추가하지 않음 (라벨 클릭 시에만 추가)
-      console.log('텍스트 선택됨:', text)
     },
     onTextCleared: () => {
-      console.log('텍스트 선택 해제됨')
+      // 텍스트 선택 해제
     },
     onTextDragToChat: onTextDragToChat
   })
@@ -72,19 +71,11 @@ export default function AnalysisResults({
   useEffect(() => {
     if (analysisData && analysisData.length > lastRenderedLength) {
       // 새로운 컨텐츠가 추가되었을 때
-      console.log('🔄 새로운 컨텐츠 감지:', {
-        현재길이: analysisData.length,
-        이전길이: lastRenderedLength,
-        새로추가된길이: analysisData.length - lastRenderedLength,
-        분석중: isAnalyzing
-      })
-      
       setLastRenderedLength(analysisData.length)
       setAnimationKey(prev => prev + 1) // 애니메이션 키 변경으로 리렌더링 트리거
       
       // 실시간 렌더링 효과
       if (streamingRef.current && isAnalyzing) {
-        console.log('✨ 실시간 렌더링 효과 적용')
         streamingRef.current.style.transition = 'all 0.3s ease-in-out'
         streamingRef.current.style.transform = 'scale(1.01)'
         streamingRef.current.style.opacity = '0.9'
@@ -110,7 +101,7 @@ export default function AnalysisResults({
         return JSON.parse(trimmedData) as AnalysisResult
       }
     } catch (error) {
-      console.log('JSON 파싱 실패, 일반 텍스트로 처리:', error)
+      // JSON 파싱 실패, 일반 텍스트로 처리
     }
     
     return null

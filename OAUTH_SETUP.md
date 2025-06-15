@@ -319,8 +319,6 @@ app.use(cors({
 node -e "
 const jwt = require('jsonwebtoken');
 const token = jwt.sign({id: 'test', email: 'test@test.com'}, 'your_jwt_secret');
-console.log('Test token:', token);
-console.log('Test URL: http://localhost:3000/auth/success?token=' + token);
 "
 ```
 

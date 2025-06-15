@@ -33,8 +33,6 @@ const upload = multer({
 
 // 지원 형식 조회 API
 app.get('/api/medical/supported-formats', (req, res) => {
-  console.log('지원 형식 조회 요청');
-  
   const formats = [
     {
       extension: 'JPG',
@@ -61,17 +59,11 @@ app.get('/api/medical/supported-formats', (req, res) => {
 
 // 실시간 스트리밍 텍스트 분석 API
 app.post('/api/medical/analyze', upload.single('medicalFile'), async (req, res) => {
-  console.log('파일 분석 요청 수신');
   
   if (!req.file) {
     return res.status(400).json({ error: '파일이 업로드되지 않았습니다.' });
   }
 
-  console.log('업로드된 파일:', {
-    originalname: req.file.originalname,
-    mimetype: req.file.mimetype,
-    size: req.file.size
-  });
 
   // SSE 헤더 설정
   res.writeHead(200, {
@@ -135,8 +127,6 @@ app.post('/api/medical/analyze', upload.single('medicalFile'), async (req, res) 
       progress: progress
     })}\n\n`);
 
-    console.log(`단계 ${i + 1}/${totalSteps} 전송: ${step.substring(0, 30)}...`);
-    
     // 실시간 효과를 위한 지연 (500ms-1.5초 랜덤)
     await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
   }
@@ -155,7 +145,6 @@ app.post('/api/medical/analyze', upload.single('medicalFile'), async (req, res) 
     progress: 100
   })}\n\n`);
 
-  console.log('분석 완료');
   res.end();
   
   // 개인정보 보호: 메모리에 저장된 파일 데이터는 응답 완료와 함께 자동으로 가비지 컬렉션됨

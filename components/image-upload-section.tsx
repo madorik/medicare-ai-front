@@ -69,15 +69,12 @@ export default function ImageUploadSection({
         if (Array.isArray(data)) {
           setSupportedFormats(data)
         } else {
-          console.warn('지원 형식 응답이 배열이 아닙니다:', data)
           setDefaultFormats()
         }
       } else {
-        console.warn('지원 형식 조회 실패:', response.status)
         setDefaultFormats()
       }
     } catch (error) {
-      console.error('지원 형식 조회 실패:', error)
       setDefaultFormats()
     }
   }
@@ -161,7 +158,6 @@ export default function ImageUploadSection({
       startSSEConnection(response)
 
     } catch (error) {
-      console.error('업로드 오류:', error)
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.'
       setError(errorMessage)
       onError(errorMessage)
@@ -188,7 +184,6 @@ export default function ImageUploadSection({
           const { done, value } = await reader.read()
           
           if (done) {
-            console.log('🏁 SSE 스트림 완료')
             setIsUploading(false)
             onAnalysisComplete()
             break
@@ -205,135 +200,91 @@ export default function ImageUploadSection({
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6))
-                console.log('🔥 SSE 데이터 수신:', {
-                  타입: data.type,
-                  컨텐츠: data.content ? `"${data.content.substring(0, 50)}..."` : 'null',
-                  누적길이: data.accumulated ? data.accumulated.length : 'null',
-                  진행률: data.progress,
-                  시간: new Date().toLocaleTimeString()
-                })
                 
                 switch (data.type) {
                   case 'connected':
-                    console.log('분석 스트림 연결됨:', data.message)
                     onStatusUpdate?.(data.message, 'info')
                     break
                     
                   case 'status':
-                    console.log('상태 업데이트:', data.message)
                     onStatusUpdate?.(data.message, 'info')
                     break
                     
                   case 'chunk':
                     // 실시간 텍스트 청크 - 서버에서 부분 텍스트를 보내는 경우
-                    console.log('📝 chunk 타입 처리 시작')
                     if (data.content) {
                       const newContent = data.content
                       accumulatedText += newContent
-                      console.log('✅ 실시간 청크 추가:', {
-                        새로운내용: `"${newContent}"`,
-                        누적길이: accumulatedText.length,
-                        진행률: data.progress
-                      })
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     }
                     // 서버에서 누적된 전체 텍스트를 보내는 경우
                     else if (data.accumulated) {
                       accumulatedText = data.accumulated
-                      console.log('📊 누적 텍스트 업데이트:', accumulatedText.length)
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     }
                     break
                     
                   case 'progress':
                     // 진행 상황과 함께 텍스트 추가
-                    console.log('📈 progress 타입 처리 시작')
                     
                     // 서버에서 accumulated 필드로 전체 누적 텍스트를 보내는 경우 (우선 처리)
                     if (data.accumulated) {
                       accumulatedText = data.accumulated
-                      console.log('✅ 누적 텍스트로 실시간 업데이트:', {
-                        누적텍스트길이: accumulatedText.length,
-                        진행률: data.progress,
-                        새로추가된단계: data.content ? `"${data.content}"` : 'null',
-                        미리보기: accumulatedText.substring(Math.max(0, accumulatedText.length - 100))
-                      })
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     }
                     // accumulated가 없고 content만 있는 경우
                     else if (data.content) {
                       const newContent = data.content
                       accumulatedText += (accumulatedText ? '\n' : '') + newContent
-                      console.log('✅ 진행 상황 텍스트 추가:', {
-                        새로운내용: `"${newContent}"`,
-                        누적텍스트길이: accumulatedText.length,
-                        진행률: data.progress,
-                        미리보기: accumulatedText.substring(accumulatedText.length - 100)
-                      })
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     } 
                     // 둘 다 없으면 진행률만 업데이트
                     else {
-                      console.log('📊 진행률만 업데이트:', data.progress)
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     }
                     break
                     
                   case 'complete':
                     // 최종 결과 처리
-                    console.log('🎯 complete 타입 처리 시작')
                     if (data.result) {
                       if (data.result.format === 'text') {
                         accumulatedText = data.result.analysis
-                        console.log('✅ 최종 결과 텍스트 설정:', accumulatedText.length)
                         onAnalysisResult(accumulatedText, undefined, 100)
                       } else {
-                        console.log('📋 결과 형식이 text가 아님:', data.result.format)
                         onAnalysisResult(accumulatedText, undefined, 100)
                       }
                     } else if (data.content) {
                       accumulatedText += (accumulatedText ? '\n' : '') + data.content
-                      console.log('✅ 완료 시 추가 컨텐츠:', data.content)
                       onAnalysisResult(accumulatedText, undefined, 100)
                     }
                     
-                    console.log('🎉 분석 완료, 최종 텍스트 길이:', accumulatedText.length)
                     setIsUploading(false)
                     onAnalysisComplete()
                     onStatusUpdate?.(data.message || '분석이 완료되었습니다.', 'success')
                     return
                     
                   case 'error':
-                    console.error('❌ SSE 오류:', data.message)
                     throw new Error(data.message || '분석 중 오류가 발생했습니다.')
                     
                   case 'warning':
-                    console.warn('⚠️ SSE 경고:', data.message)
                     onStatusUpdate?.(data.message, 'warning')
                     break
                     
-                  default:
-                    console.log('❓ 알 수 없는 SSE 이벤트:', {
-                      타입: data.type,
-                      데이터: data
-                    })
-                    
-                    // 알 수 없는 타입이지만 content가 있다면 처리
-                    if (data.content) {
-                      accumulatedText += (accumulatedText ? '\n' : '') + data.content
-                      console.log('🔄 알 수 없는 타입의 컨텐츠 추가:', data.content)
-                      onAnalysisResult(accumulatedText, undefined, data.progress || 0)
-                    }
-                    break
+                                  default:
+                  // 알 수 없는 타입이지만 content가 있다면 처리
+                  if (data.content) {
+                    accumulatedText += (accumulatedText ? '\n' : '') + data.content
+                    onAnalysisResult(accumulatedText, undefined, data.progress || 0)
+                  }
+                  break
                 }
               } catch (parseError) {
-                console.warn('⚠️ SSE 데이터 파싱 실패:', parseError, line)
+                // SSE 데이터 파싱 실패
               }
             }
           }
         }
       } catch (error) {
-        console.error('SSE 스트림 읽기 오류:', error)
         const errorMessage = error instanceof Error ? error.message : 'SSE 연결 중 오류가 발생했습니다.'
         setError(errorMessage)
         onError(errorMessage)

@@ -45,9 +45,9 @@ function LoginContent() {
           // 개발 환경에서 디버그 정보 표시
           if (process.env.NODE_ENV === 'development') {
             const details = searchParams.get('details')
-            if (details) {
-              console.log('OAuth 디버그 정보:', decodeURIComponent(details))
-            }
+                  if (details) {
+        // OAuth 디버그 정보
+      }
           }
           break
         default:
@@ -65,7 +65,6 @@ function LoginContent() {
       window.location.href = `${backendURL}/auth/google`
       
     } catch (error) {
-      console.error('구글 로그인 오류:', error)
       setError('로그인 중 오류가 발생했습니다.')
       setIsLoading(false)
     }
