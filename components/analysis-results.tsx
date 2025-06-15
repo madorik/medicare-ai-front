@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain, Clock, Loader2, Activity, Download, Share, Calendar, Shield, MessageSquare, Stethoscope, ClipboardList, AlertTriangle, Target, TrendingUp } from "lucide-react"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTextDrag } from "@/hooks/use-text-drag"
 
 // 새로운 JSON 스키마 타입 정의
@@ -45,6 +45,8 @@ export default function AnalysisResults({
   onTextDragToChat
 }: AnalysisResultsProps) {
   const streamingRef = useRef<HTMLDivElement>(null)
+  const [lastRenderedLength, setLastRenderedLength] = useState(0)
+  const [animationKey, setAnimationKey] = useState(0)
 
   // 텍스트 드래그 훅 사용
   const { 
@@ -66,12 +68,36 @@ export default function AnalysisResults({
     onTextDragToChat: onTextDragToChat
   })
 
-  // 자동 스크롤 처리
+  // 실시간 렌더링 최적화 - 새로운 컨텐츠가 추가될 때마다 애니메이션 트리거
   useEffect(() => {
-    if (streamingRef.current) {
-      streamingRef.current.scrollTop = streamingRef.current.scrollHeight
+    if (analysisData && analysisData.length > lastRenderedLength) {
+      // 새로운 컨텐츠가 추가되었을 때
+      console.log('🔄 새로운 컨텐츠 감지:', {
+        현재길이: analysisData.length,
+        이전길이: lastRenderedLength,
+        새로추가된길이: analysisData.length - lastRenderedLength,
+        분석중: isAnalyzing
+      })
+      
+      setLastRenderedLength(analysisData.length)
+      setAnimationKey(prev => prev + 1) // 애니메이션 키 변경으로 리렌더링 트리거
+      
+      // 실시간 렌더링 효과
+      if (streamingRef.current && isAnalyzing) {
+        console.log('✨ 실시간 렌더링 효과 적용')
+        streamingRef.current.style.transition = 'all 0.3s ease-in-out'
+        streamingRef.current.style.transform = 'scale(1.01)'
+        streamingRef.current.style.opacity = '0.9'
+        
+        setTimeout(() => {
+          if (streamingRef.current) {
+            streamingRef.current.style.transform = 'scale(1)'
+            streamingRef.current.style.opacity = '1'
+          }
+        }, 200)
+      }
     }
-  }, [analysisData])
+  }, [analysisData, isAnalyzing, lastRenderedLength])
 
   // JSON 데이터 파싱 함수
   const parseAnalysisData = (data: string): AnalysisResult | null => {
@@ -106,6 +132,251 @@ export default function AnalysisResults({
       }
       return part
     })
+  }
+
+  // 마크다운을 HTML로 변환하는 함수
+  const renderMarkdown = (text: string) => {
+    if (!text) return null
+    
+    // 줄 단위로 처리
+    const lines = text.split('\n')
+    const elements: JSX.Element[] = []
+    let i = 0
+    
+    while (i < lines.length) {
+      const line = lines[i].trim()
+      
+      // 빈 줄 처리
+      if (line === '') {
+        elements.push(<br key={`br-${i}`} />)
+        i++
+        continue
+      }
+      
+      // 헤더 처리 (# ## ### ####)
+      if (line.startsWith('#')) {
+        const level = line.match(/^#+/)?.[0].length || 1
+        const headerText = line.replace(/^#+\s*/, '')
+        const HeaderTag = `h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements
+        
+        elements.push(
+          <HeaderTag 
+            key={`header-${i}`} 
+            className={`font-bold mt-4 mb-2 ${
+              level === 1 ? 'text-xl text-gray-900' :
+              level === 2 ? 'text-lg text-gray-800' :
+              level === 3 ? 'text-base text-gray-800' :
+              'text-sm text-gray-700'
+            }`}
+          >
+            {processInlineMarkdown(headerText)}
+          </HeaderTag>
+        )
+        i++
+        continue
+      }
+      
+      // 리스트 처리 (- * +)
+      if (/^[-*+]\s/.test(line)) {
+        const listItems: JSX.Element[] = []
+        let j = i
+        
+        while (j < lines.length && /^[-*+]\s/.test(lines[j].trim())) {
+          const itemText = lines[j].trim().replace(/^[-*+]\s/, '')
+          
+          // 체크박스 리스트 처리
+          if (itemText.startsWith('[ ]') || itemText.startsWith('[x]') || itemText.startsWith('[X]')) {
+            const isChecked = itemText.startsWith('[x]') || itemText.startsWith('[X]')
+            const checkboxText = itemText.replace(/^\[[ xX]\]\s/, '')
+            
+            listItems.push(
+              <li key={`li-${j}`} className="task-list-item ml-4 mb-1 flex items-start">
+                <input 
+                  type="checkbox" 
+                  checked={isChecked} 
+                  readOnly
+                  className="mr-2 mt-1" 
+                />
+                <span>{processInlineMarkdown(checkboxText)}</span>
+              </li>
+            )
+          } else {
+            listItems.push(
+              <li key={`li-${j}`} className="ml-4 mb-1">
+                {processInlineMarkdown(itemText)}
+              </li>
+            )
+          }
+          j++
+        }
+        
+        elements.push(
+          <ul key={`ul-${i}`} className="list-disc ml-4 mb-3">
+            {listItems}
+          </ul>
+        )
+        i = j
+        continue
+      }
+      
+      // 숫자 리스트 처리 (1. 2. 3.)
+      if (/^\d+\.\s/.test(line)) {
+        const listItems: JSX.Element[] = []
+        let j = i
+        
+        while (j < lines.length && /^\d+\.\s/.test(lines[j].trim())) {
+          const itemText = lines[j].trim().replace(/^\d+\.\s/, '')
+          listItems.push(
+            <li key={`oli-${j}`} className="ml-4 mb-1">
+              {processInlineMarkdown(itemText)}
+            </li>
+          )
+          j++
+        }
+        
+        elements.push(
+          <ol key={`ol-${i}`} className="list-decimal ml-4 mb-3">
+            {listItems}
+          </ol>
+        )
+        i = j
+        continue
+      }
+      
+      // 인용문 처리 (>)
+      if (line.startsWith('>')) {
+        const quoteText = line.replace(/^>\s*/, '')
+        elements.push(
+          <blockquote 
+            key={`quote-${i}`} 
+            className="border-l-4 border-blue-400 pl-4 py-2 bg-blue-50 mb-3 italic text-gray-700"
+          >
+            {processInlineMarkdown(quoteText)}
+          </blockquote>
+        )
+        i++
+        continue
+      }
+      
+      // 구분선 처리 (---)
+      if (/^---+$/.test(line) || /^\*\*\*+$/.test(line)) {
+        elements.push(
+          <hr key={`hr-${i}`} className="border-t border-gray-300 my-6" />
+        )
+        i++
+        continue
+      }
+      
+      // 테이블 처리
+      if (line.includes('|') && lines[i + 1]?.includes('|')) {
+        const tableRows: JSX.Element[] = []
+        let j = i
+        let isHeader = true
+        
+        while (j < lines.length && lines[j].includes('|')) {
+          const row = lines[j].trim()
+          
+          // 구분선 스킵 (|---|---|)
+          if (/^\|[\s\-\|:]+\|$/.test(row)) {
+            j++
+            continue
+          }
+          
+          const cells = row.split('|').map(cell => cell.trim()).filter(cell => cell)
+          
+          if (isHeader) {
+            tableRows.push(
+              <tr key={`tr-${j}`}>
+                {cells.map((cell, cellIndex) => (
+                  <th key={`th-${j}-${cellIndex}`} className="border border-gray-300 px-4 py-2 bg-gray-100 font-semibold text-left">
+                    {processInlineMarkdown(cell)}
+                  </th>
+                ))}
+              </tr>
+            )
+            isHeader = false
+          } else {
+            tableRows.push(
+              <tr key={`tr-${j}`}>
+                {cells.map((cell, cellIndex) => (
+                  <td key={`td-${j}-${cellIndex}`} className="border border-gray-300 px-4 py-2">
+                    {processInlineMarkdown(cell)}
+                  </td>
+                ))}
+              </tr>
+            )
+          }
+          j++
+        }
+        
+        if (tableRows.length > 0) {
+          elements.push(
+            <table key={`table-${i}`} className="w-full border-collapse border border-gray-300 mb-4">
+              <tbody>{tableRows}</tbody>
+            </table>
+          )
+        }
+        i = j
+        continue
+      }
+      
+      // 코드 블록 처리 (```)
+      if (line.startsWith('```')) {
+        const codeLines: string[] = []
+        i++ // 시작 ``` 다음 줄부터
+        
+        while (i < lines.length && !lines[i].trim().startsWith('```')) {
+          codeLines.push(lines[i])
+          i++
+        }
+        
+        elements.push(
+          <pre 
+            key={`code-${i}`} 
+            className="bg-gray-100 p-4 rounded-lg mb-3 overflow-x-auto"
+          >
+            <code className="text-sm font-mono text-gray-800">
+              {codeLines.join('\n')}
+            </code>
+          </pre>
+        )
+        i++ // 종료 ``` 다음으로
+        continue
+      }
+      
+      // 일반 문단 처리
+      elements.push(
+        <p key={`p-${i}`} className="mb-3 leading-relaxed text-gray-800">
+          {processInlineMarkdown(line)}
+        </p>
+      )
+      i++
+    }
+    
+    return <div className="markdown-content">{elements}</div>
+  }
+
+  // 인라인 마크다운 처리 함수 (굵은 글씨, 기울임, 인라인 코드 등)
+  const processInlineMarkdown = (text: string): React.ReactNode => {
+    if (!text) return text
+    
+    // **굵은 글씨** 처리
+    let processed = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    
+    // *기울임* 처리 (굵은 글씨와 겹치지 않도록)
+    processed = processed.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
+    
+    // `인라인 코드` 처리
+    processed = processed.replace(/`([^`]+)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>')
+    
+    // 링크 처리 [텍스트](URL)
+    processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
+    
+    // 이미지 처리 ![alt](URL)
+    processed = processed.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg shadow-sm" />')
+    
+    // HTML을 JSX로 변환
+    return <span dangerouslySetInnerHTML={{ __html: processed }} />
   }
 
   if (hasError) {
@@ -148,132 +419,6 @@ export default function AnalysisResults({
     )
   }
 
-  // 구조화된 JSON 데이터 렌더링
-  const renderStructuredData = (data: AnalysisResult) => (
-    <div className="space-y-3 max-w-2xl mx-auto">
-      {/* 환자 정보 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-50">
-          <h2 className="font-semibold text-gray-900">환자 정보</h2>
-        </div>
-        <div className="p-4" {...textDragHandlers}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-xs font-medium text-gray-500 mb-1">환자명</div>
-              <div className="text-gray-900 text-sm font-medium">{data.patient_info.name}</div>
-            </div>
-            <div>
-              <div className="text-xs font-medium text-gray-500 mb-1">나이</div>
-              <div className="text-gray-900 text-sm font-medium">{data.patient_info.age}세</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 진단명 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-50">
-          <h2 className="font-semibold text-gray-900">진단명</h2>
-        </div>
-        <div className="p-4" {...textDragHandlers}>
-          <div className="text-gray-900 text-sm leading-relaxed p-3 bg-blue-50/50 rounded border-l-4 border-blue-400">
-            {formatBoldText(data.diagnosis)}
-          </div>
-        </div>
-      </div>
-
-      {/* 주요 증상 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-50">
-          <h2 className="font-semibold text-gray-900">주요 증상</h2>
-        </div>
-        <div className="p-4" {...textDragHandlers}>
-          <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-            {formatBoldText(data.main_symptoms)}
-          </div>
-        </div>
-      </div>
-
-      {/* 처방 약물 */}
-      {data.prescribed_drugs && data.prescribed_drugs.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-          <div className="px-4 py-3 border-b border-gray-50">
-            <h2 className="font-semibold text-gray-900">처방 약물</h2>
-          </div>
-          <div className="p-4" {...textDragHandlers}>
-            <div className="grid gap-3">
-              {data.prescribed_drugs.map((drug, index) => (
-                <div key={index} className="bg-green-50/50 rounded p-3 border border-green-100 hover:shadow-sm hover:border-green-200 transition-all duration-200">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium text-gray-900 text-sm">{formatBoldText(drug.name)}</h3>
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
-                      처방약
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div>
-                      <div className="text-xs text-gray-500 mb-0.5">용량·용법</div>
-                      <div className="text-sm font-medium text-gray-700">{formatBoldText(drug.dosage)}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 mb-0.5">주요 효능</div>
-                      <div className="text-sm text-gray-600">{formatBoldText(drug.purpose)}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 상세 분석 */}
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg shadow-sm border border-indigo-100 overflow-hidden">
-        <div className="px-4 py-3 border-b border-indigo-100/50">
-          <h2 className="font-semibold text-indigo-900">상세 분석</h2>
-        </div>
-        <div className="p-4" {...textDragHandlers}>
-          <div className="text-indigo-800 text-sm leading-relaxed whitespace-pre-wrap">
-            {formatBoldText(data.detailed_analysis)}
-          </div>
-        </div>
-      </div>
-
-      {/* 치료 계획 */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-50">
-          <h2 className="font-semibold text-gray-900">치료 계획</h2>
-        </div>
-        <div className="p-4" {...textDragHandlers}>
-          <div className="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-            {formatBoldText(data.treatment_plan)}
-          </div>
-        </div>
-      </div>
-
-      {/* 도움이 되는 음식 */}
-      {data.helpful_foods && data.helpful_foods.length > 0 && (
-        <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-lg shadow-sm border border-emerald-100 overflow-hidden">
-          <div className="px-4 py-3 border-b border-emerald-100/50">
-            <h2 className="font-semibold text-emerald-900">도움이 되는 음식</h2>
-          </div>
-          <div className="p-4" {...textDragHandlers}>
-            <div className="flex flex-wrap gap-2">
-              {data.helpful_foods.map((food, index) => (
-                <span 
-                  key={index} 
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800 border border-emerald-200"
-                >
-                  {formatBoldText(food)}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-     
-    </div>
-  )
 
   // 일반 텍스트 렌더링 (기존 방식)
   const renderPlainText = (data: string) => (
@@ -281,20 +426,10 @@ export default function AnalysisResults({
       <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-gray-700" />
-            <CardTitle className="text-gray-800">분석 내용</CardTitle>
-            {isAnalyzing && (
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-xs text-emerald-600 font-medium">실시간</span>
-              </div>
-            )}
-          </div>
-          <div className="flex items-center space-x-2">
             {isAnalyzing ? (
               <Badge className="bg-blue-500 text-white border-0 shadow-sm">
                 <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                분석 진행중
+                {progress > 0 ? `${progress}%` : '분석 중'}
               </Badge>
             ) : data ? (
               <Badge className="bg-emerald-500 text-white border-0 shadow-sm">
@@ -315,14 +450,24 @@ export default function AnalysisResults({
                 텍스트를 드래그하거나 더블클릭한 후 "Add to Chat" 라벨을 클릭하여 채팅창에 입력하세요
               </span>
             </div>
+            {isAnalyzing && (
+              <div className="flex items-center space-x-1 text-blue-600">
+                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce"></div>
+                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <span className="text-xs font-medium ml-1">실시간 업데이트</span>
+              </div>
+            )}
           </div>
         </div>
         
         <div 
           ref={streamingRef}
-          className={`bg-white rounded-b-lg p-6 max-h-96 overflow-y-auto transition-all duration-200 relative ${
+          className={`bg-white rounded-b-lg p-6 analysis-content relative ${
             isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''
-          } ${selectedText ? 'bg-emerald-50 border border-emerald-200' : ''}`}
+          } ${selectedText ? 'bg-emerald-50 border border-emerald-200' : ''} ${
+            isAnalyzing ? 'streaming-content content-glow' : ''
+          }`}
           style={{
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
@@ -331,14 +476,25 @@ export default function AnalysisResults({
           {...textDragHandlers}
         >
           <div className="prose prose-gray max-w-none">
-            <div className="text-gray-800 leading-relaxed text-sm select-text">
-              {data}
+            <div 
+              key={`content-${animationKey}`}
+              className={`text-gray-800 leading-relaxed text-sm select-text ${
+                isAnalyzing ? 'streaming-content' : ''
+              }`}
+            >
+              {renderMarkdown(data)}
+              {/* 실시간 분석 중일 때 타이핑 커서 표시 */}
+              {isAnalyzing && data && (
+                <span className="inline-block w-0.5 h-4 bg-emerald-500 typing-cursor ml-1 align-middle"></span>
+              )}
             </div>
             
             {isAnalyzing && (
               <div className="flex items-center space-x-2 text-emerald-600 mt-6 pt-4 border-t border-gray-100">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm font-medium">분석이 계속 진행 중입니다...</span>
+                <span className="text-sm font-medium">
+                  {progress > 0 ? `분석 진행 중... ${progress}%` : '분석이 계속 진행 중입니다...'}
+                </span>
               </div>
             )}
           </div>
@@ -361,21 +517,26 @@ export default function AnalysisResults({
         </div>
       )}
 
-      {/* 분석 상태 표시 */}
-      {isAnalyzing && (
-        <Card className="border-0 shadow-lg">
+      {/* 분석 상태 표시 - 분석 데이터가 없을 때만 표시 */}
+      {isAnalyzing && !analysisData && (
+        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-emerald-50">
           <CardContent className="p-8 text-center">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Loader2 className="w-6 h-6 animate-spin text-gray-600" />
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 relative">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <div className="absolute inset-0 rounded-full border-2 border-blue-200 border-t-transparent animate-spin"></div>
             </div>
-            <p className="text-gray-600">분석을 진행하고 있습니다...</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">AI 분석 시작</h3>
+            <p className="text-gray-600 mb-4">의료 기록을 분석하고 있습니다...</p>
             {progress > 0 && (
-              <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
+              <div className="w-full bg-gray-200 rounded-full h-3 mt-4 overflow-hidden">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                  className="bg-gradient-to-r from-blue-500 to-emerald-500 h-3 rounded-full transition-all duration-500 ease-out" 
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
+            )}
+            {progress > 0 && (
+              <p className="text-sm text-gray-500 mt-2">{progress}% 완료</p>
             )}
           </CardContent>
         </Card>

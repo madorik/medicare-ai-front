@@ -180,6 +180,7 @@ export default function ImageUploadSection({
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let accumulatedText = ''
+    let buffer = '' // 불완전한 JSON 데이터를 위한 버퍼
 
     const readStream = async () => {
       try {
@@ -187,20 +188,30 @@ export default function ImageUploadSection({
           const { done, value } = await reader.read()
           
           if (done) {
-            console.log('SSE 스트림 완료')
+            console.log('🏁 SSE 스트림 완료')
             setIsUploading(false)
             onAnalysisComplete()
             break
           }
 
           const chunk = decoder.decode(value, { stream: true })
-          const lines = chunk.split('\n')
+          buffer += chunk // 버퍼에 청크 추가
+          
+          // 완전한 라인들을 처리
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || '' // 마지막 불완전한 라인은 버퍼에 보관
 
           for (const line of lines) {
             if (line.startsWith('data: ')) {
               try {
                 const data = JSON.parse(line.slice(6))
-                console.log('SSE 데이터 수신:', data.type, data)
+                console.log('🔥 SSE 데이터 수신:', {
+                  타입: data.type,
+                  컨텐츠: data.content ? `"${data.content.substring(0, 50)}..."` : 'null',
+                  누적길이: data.accumulated ? data.accumulated.length : 'null',
+                  진행률: data.progress,
+                  시간: new Date().toLocaleTimeString()
+                })
                 
                 switch (data.type) {
                   case 'connected':
@@ -215,67 +226,108 @@ export default function ImageUploadSection({
                     
                   case 'chunk':
                     // 실시간 텍스트 청크 - 서버에서 부분 텍스트를 보내는 경우
+                    console.log('📝 chunk 타입 처리 시작')
                     if (data.content) {
-                      accumulatedText += data.content
-                      console.log('텍스트 청크 추가:', data.content)
-                      console.log('누적된 텍스트 길이:', accumulatedText.length)
+                      const newContent = data.content
+                      accumulatedText += newContent
+                      console.log('✅ 실시간 청크 추가:', {
+                        새로운내용: `"${newContent}"`,
+                        누적길이: accumulatedText.length,
+                        진행률: data.progress
+                      })
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     }
                     // 서버에서 누적된 전체 텍스트를 보내는 경우
                     else if (data.accumulated) {
                       accumulatedText = data.accumulated
-                      console.log('누적 텍스트 업데이트:', accumulatedText.length)
+                      console.log('📊 누적 텍스트 업데이트:', accumulatedText.length)
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     }
                     break
                     
                   case 'progress':
                     // 진행 상황과 함께 텍스트 추가
-                    if (data.content) {
-                      // 새로운 내용이 있으면 누적
-                      accumulatedText += (accumulatedText ? '\n' : '') + data.content
-                      console.log('진행 상황 텍스트 추가:', data.content)
-                      console.log('현재 누적 텍스트:', accumulatedText.substring(0, 100) + '...')
+                    console.log('📈 progress 타입 처리 시작')
+                    
+                    // 서버에서 accumulated 필드로 전체 누적 텍스트를 보내는 경우 (우선 처리)
+                    if (data.accumulated) {
+                      accumulatedText = data.accumulated
+                      console.log('✅ 누적 텍스트로 실시간 업데이트:', {
+                        누적텍스트길이: accumulatedText.length,
+                        진행률: data.progress,
+                        새로추가된단계: data.content ? `"${data.content}"` : 'null',
+                        미리보기: accumulatedText.substring(Math.max(0, accumulatedText.length - 100))
+                      })
                       onAnalysisResult(accumulatedText, undefined, data.progress)
-                    } else {
-                      // 텍스트 없이 진행률만 업데이트
+                    }
+                    // accumulated가 없고 content만 있는 경우
+                    else if (data.content) {
+                      const newContent = data.content
+                      accumulatedText += (accumulatedText ? '\n' : '') + newContent
+                      console.log('✅ 진행 상황 텍스트 추가:', {
+                        새로운내용: `"${newContent}"`,
+                        누적텍스트길이: accumulatedText.length,
+                        진행률: data.progress,
+                        미리보기: accumulatedText.substring(accumulatedText.length - 100)
+                      })
+                      onAnalysisResult(accumulatedText, undefined, data.progress)
+                    } 
+                    // 둘 다 없으면 진행률만 업데이트
+                    else {
+                      console.log('📊 진행률만 업데이트:', data.progress)
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     }
                     break
                     
                   case 'complete':
                     // 최종 결과 처리
+                    console.log('🎯 complete 타입 처리 시작')
                     if (data.result) {
                       if (data.result.format === 'text') {
                         accumulatedText = data.result.analysis
+                        console.log('✅ 최종 결과 텍스트 설정:', accumulatedText.length)
                         onAnalysisResult(accumulatedText, undefined, 100)
                       } else {
+                        console.log('📋 결과 형식이 text가 아님:', data.result.format)
                         onAnalysisResult(accumulatedText, undefined, 100)
                       }
                     } else if (data.content) {
                       accumulatedText += (accumulatedText ? '\n' : '') + data.content
+                      console.log('✅ 완료 시 추가 컨텐츠:', data.content)
                       onAnalysisResult(accumulatedText, undefined, 100)
                     }
                     
-                    console.log('분석 완료, 최종 텍스트 길이:', accumulatedText.length)
+                    console.log('🎉 분석 완료, 최종 텍스트 길이:', accumulatedText.length)
                     setIsUploading(false)
                     onAnalysisComplete()
                     onStatusUpdate?.(data.message || '분석이 완료되었습니다.', 'success')
                     return
                     
                   case 'error':
+                    console.error('❌ SSE 오류:', data.message)
                     throw new Error(data.message || '분석 중 오류가 발생했습니다.')
                     
                   case 'warning':
+                    console.warn('⚠️ SSE 경고:', data.message)
                     onStatusUpdate?.(data.message, 'warning')
                     break
                     
                   default:
-                    console.log('알 수 없는 SSE 이벤트:', data.type, data)
+                    console.log('❓ 알 수 없는 SSE 이벤트:', {
+                      타입: data.type,
+                      데이터: data
+                    })
+                    
+                    // 알 수 없는 타입이지만 content가 있다면 처리
+                    if (data.content) {
+                      accumulatedText += (accumulatedText ? '\n' : '') + data.content
+                      console.log('🔄 알 수 없는 타입의 컨텐츠 추가:', data.content)
+                      onAnalysisResult(accumulatedText, undefined, data.progress || 0)
+                    }
                     break
                 }
               } catch (parseError) {
-                console.warn('SSE 데이터 파싱 실패:', parseError, line)
+                console.warn('⚠️ SSE 데이터 파싱 실패:', parseError, line)
               }
             }
           }
