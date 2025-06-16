@@ -73,12 +73,6 @@ export default function AnalysisResults({
   // 실시간 렌더링 최적화 - 새로운 컨텐츠가 추가될 때마다 애니메이션 트리거
   useEffect(() => {
     if (analysisData && analysisData.length > lastRenderedLength) {
-      console.log('🔄 분석 결과 업데이트:', {
-        이전길이: lastRenderedLength,
-        현재길이: analysisData.length,
-        신규내용: analysisData.slice(lastRenderedLength)
-      })
-      
       // 새로운 컨텐츠가 추가되었을 때
       setLastRenderedLength(analysisData.length)
     }

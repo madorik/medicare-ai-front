@@ -164,7 +164,4 @@ app.use((error, req, res, next) => {
 // 서버 시작
 app.listen(PORT, () => {
   console.log(`🚀 서버가 http://localhost:${PORT}에서 실행 중입니다.`);
-  console.log('📁 파일 업로드 엔드포인트: POST /api/medical/analyze');
-  console.log('📋 지원 형식 조회: GET /api/medical/supported-formats');
-  console.log('💬 실시간 SSE 스트리밍으로 분석 결과 제공');
-}); 
+});

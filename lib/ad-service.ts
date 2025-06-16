@@ -128,24 +128,12 @@ function getHighValueSimulationAd(): AdData {
 // 광고 클릭 추적
 export function trackAdClick(adId: string, model: string) {
   // 광고 클릭 분석 데이터 전송
-  if (typeof window !== 'undefined') {
-    // Google Analytics 또는 기타 분석 도구에 전송
-    console.log(`광고 클릭 추적: ${adId}, 모델: ${model}`)
-    
-    // 실제 환경에서는 analytics 서비스로 전송
-    // gtag('event', 'ad_click', {
-    //   ad_id: adId,
-    //   model: model,
-    //   value: 1
-    // })
-  }
 }
 
 // 광고 노출 추적
 export function trackAdImpression(adId: string, model: string) {
   if (typeof window !== 'undefined') {
-    console.log(`광고 노출 추적: ${adId}, 모델: ${model}`)
-    
+
     // 실제 환경에서는 analytics 서비스로 전송
     // gtag('event', 'ad_impression', {
     //   ad_id: adId,

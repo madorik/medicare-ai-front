@@ -228,10 +228,7 @@ export default function ImageUploadSection({
                     if (data.content) {
                       const newContent = data.content
                       accumulatedText += newContent
-                      console.log('📥 SSE chunk 수신:', newContent)
-                      console.log('📊 누적 텍스트 길이:', accumulatedText.length)
                       onAnalysisResult(accumulatedText, undefined, data.progress)
-                      onStatusUpdate?.(`분석 진행 중... (${accumulatedText.length}자)`, 'info')
                     }
                     // 서버에서 누적된 전체 텍스트를 보내는 경우
                     else if (data.accumulated) {
