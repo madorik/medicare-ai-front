@@ -37,27 +37,27 @@ export default function InfoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50 overflow-x-hidden">
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-3">
             {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <Stethoscope className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                <Stethoscope className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
+              <span className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">MediCare AI</span>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center flex-wrap gap-3 sm:space-x-4">
               {!isLoading && (
                 <>
                   {user ? (
-                    <div className="flex items-center space-x-3">
-                      <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+                    <div className="flex items-center flex-wrap gap-2 sm:space-x-3">
+                      <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-xs sm:text-sm px-3 sm:px-4">
                         <Link href="/analyze">
-                          <FileText className="w-4 h-4 mr-2" />
+                          <FileText className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                           분석하기
                         </Link>
                       </Button>
@@ -65,21 +65,22 @@ export default function InfoPage() {
                         variant="outline" 
                         size="sm"
                         onClick={handleLogout}
-                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 flex items-center space-x-2"
+                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 flex items-center space-x-1 text-xs sm:text-sm px-2 sm:px-3"
                       >
-                        <LogOut className="w-4 h-4" />
+                        <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
                         <span>로그아웃</span>
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center space-x-2">
-                      <Button variant="outline" asChild>
+                    <div className="flex items-center flex-wrap gap-2 sm:space-x-2">
+                      <Button variant="outline" asChild className="text-xs sm:text-sm px-3 sm:px-4">
                         <Link href="/login">로그인</Link>
                       </Button>
-                      <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+                      <Button asChild className="bg-emerald-600 hover:bg-emerald-700 text-xs sm:text-sm px-3 sm:px-4">
                         <Link href="/analyze">
-                          무료로 시작하기
-                          <ArrowRight className="w-4 h-4 ml-2" />
+                          <span className="hidden sm:inline">무료로 시작하기</span>
+                          <span className="sm:hidden">시작하기</span>
+                          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
                         </Link>
                       </Button>
                     </div>
@@ -95,7 +96,7 @@ export default function InfoPage() {
       <section className="py-20 relative overflow-hidden">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-6 leading-tight">
               <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
                  AI가 의료 기록을
               </span>
@@ -105,7 +106,7 @@ export default function InfoPage() {
               </span>
             </h1>
             
-            <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
               처방전, 검사 결과지, 진단서를 업로드해주세요. <br />
               AI가 즉시 분석하여 쉽고 명확한 의료 정보를 제공합니다.
             </p>
@@ -129,7 +130,7 @@ export default function InfoPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8 max-w-2xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8 max-w-2xl mx-auto">
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-600 mb-2">98%</div>
                 <div className="text-gray-600">분석 정확도</div>
@@ -151,15 +152,15 @@ export default function InfoPage() {
       <section id="features" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               왜 MediCare AI인가요?
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
               AI 기술과 의료 전문 지식을 결합하여 쉽고 빠르게 진료 분석 결과를 제공합니다.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 to-emerald-100">
               <CardHeader>
                 <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center mb-4">
@@ -203,20 +204,20 @@ export default function InfoPage() {
       <section id="how-it-works" className="py-20 bg-gradient-to-r from-gray-50 to-gray-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               간단한 3단계로 완료
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600">
               복잡한 의료 용어도 쉽게 이해할 수 있도록 도와드립니다.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-5xl mx-auto">
             <div className="text-center">
               <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FileText className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-4">1. 파일 업로드</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-4">1. 파일 업로드</h3>
               <p className="text-gray-600">
                 처방전, 검사 결과지, 진단서 등의 의료 문서를 간단히 드래그하여 업로드하세요.
               </p>
@@ -226,7 +227,7 @@ export default function InfoPage() {
               <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Brain className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-4">2. AI 분석</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-4">2. AI 분석</h3>
               <p className="text-gray-600">
                 고도화된 의료 AI가 문서를 분석하여 주요 정보를 추출하고 해석합니다.
               </p>
@@ -236,7 +237,7 @@ export default function InfoPage() {
               <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-4">3. 결과 확인</h3>
+              <h3 className="text-lg sm:text-xl font-semibold mb-4">3. 결과 확인</h3>
               <p className="text-gray-600">
                 이해하기 쉬운 한국어로 변환된 분석 결과를 확인하고 추가 질문도 할 수 있습니다.
               </p>

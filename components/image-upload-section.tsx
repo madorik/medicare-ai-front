@@ -506,8 +506,11 @@ export default function ImageUploadSection({
                           ) : (
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 md:block hidden">
                       파일을 여기에 드래그하거나 클릭하여 업로드
+                    </h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 md:hidden block">
+                      파일 업로드
                     </h3>
                     
                     {/* Supported File Types */}
