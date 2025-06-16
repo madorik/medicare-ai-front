@@ -31,6 +31,8 @@ import {
   Settings,
   Shield,
   Mail,
+  Play,
+  X,
 } from "lucide-react"
 import type React from "react"
 
@@ -104,6 +106,12 @@ export default function HomePage() {
   // 프로필 드롭다운 상태
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
   const profileDropdownRef = useRef<HTMLDivElement>(null)
+  
+  // 광고 관련 상태
+  const [showHeaderAdModal, setShowHeaderAdModal] = useState(false)
+  const [pendingHeaderModel, setPendingHeaderModel] = useState<string>("")
+  const [isWatchingHeaderAd, setIsWatchingHeaderAd] = useState(false)
+  const [headerAdWatchTime, setHeaderAdWatchTime] = useState(0)
 
   // inputMessage 상태 변경 추적 (디버깅용)
   useEffect(() => {
@@ -565,6 +573,49 @@ export default function HomePage() {
     }
   }
 
+  // 헤더 모델 변경 핸들러
+  const handleHeaderModelChange = (newModel: string) => {
+    if (newModel !== "gpt-4o-mini") {
+      // 다른 모델 선택 시 광고 시청 확인
+      setPendingHeaderModel(newModel)
+      setShowHeaderAdModal(true)
+    } else {
+      // gpt-4o-mini는 바로 적용
+      setSelectedModel(newModel)
+    }
+  }
+
+  // 헤더 광고 시청 시작
+  const startWatchingHeaderAd = () => {
+    setIsWatchingHeaderAd(true)
+    setHeaderAdWatchTime(0)
+    
+    // 15초 광고 타이머
+    const timer = setInterval(() => {
+      setHeaderAdWatchTime(prev => {
+        if (prev >= 14) {
+          clearInterval(timer)
+          setIsWatchingHeaderAd(false)
+          setShowHeaderAdModal(false)
+          // 상태 변경을 다음 이벤트 루프로 연기
+          setTimeout(() => {
+            setSelectedModel(pendingHeaderModel)
+          }, 0)
+          return 15
+        }
+        return prev + 1
+      })
+    }, 1000)
+  }
+
+  // 헤더 광고 건너뛰기 (모델 변경 취소)
+  const skipHeaderAd = () => {
+    setShowHeaderAdModal(false)
+    setPendingHeaderModel("")
+    setIsWatchingHeaderAd(false)
+    setHeaderAdWatchTime(0)
+  }
+
   return (
     <div className="min-h-screen md:h-screen flex md:overflow-hidden bg-gray-50">
       {/* 토스트 알림 */}
@@ -756,7 +807,7 @@ export default function HomePage() {
               {/* GPT 모델 선택박스 - 분석/채팅 모드일 때만 표시 */}
               {showAnalysis ? (
                 <div className="flex items-center space-x-3">
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
+                  <Select value={selectedModel} onValueChange={handleHeaderModelChange}>
                     <SelectTrigger className="w-44 md:w-52">
                       <SelectValue placeholder="모델 선택" />
                     </SelectTrigger>
@@ -1247,6 +1298,82 @@ export default function HomePage() {
           )}
         </div>
       </div>
+
+      {/* 헤더 광고 시청 모달 */}
+      {showHeaderAdModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  프리미엄 모델 사용
+                </h3>
+                <button
+                  onClick={skipHeaderAd}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Play className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-gray-700 mb-2">
+                  <strong>{pendingHeaderModel}</strong> 모델을 사용하려면
+                </p>
+                <p className="text-sm text-gray-500">
+                  15초 광고를 시청해주세요
+                </p>
+              </div>
+
+              {!isWatchingHeaderAd ? (
+                <div className="space-y-3">
+                  <Button
+                    onClick={startWatchingHeaderAd}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white py-3"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    광고 보고 사용하기
+                  </Button>
+                  <Button
+                    onClick={skipHeaderAd}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    취소
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* 고수익 광고 시뮬레이션 - 다양한 광고 랜덤 표시 */}
+                  <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white p-4 rounded-lg text-center">
+                    <h4 className="font-bold text-lg mb-2">💎 로lex 시계</h4>
+                    <p className="text-sm mb-3">스위스 명품 시계 한정 할인!</p>
+                    <div className="bg-white/20 rounded-lg p-2">
+                      <p className="text-xs">특가 8,500만원</p>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                      {15 - headerAdWatchTime}초
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${(headerAdWatchTime / 15) * 100}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">광고 시청 중...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

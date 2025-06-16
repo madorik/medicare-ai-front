@@ -5,9 +5,10 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield } from "lucide-react"
+import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield, Play, X } from "lucide-react"
 import { useApiRequest, useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
+import { loadAd, trackAdImpression, trackAdClick, type AdData } from "@/lib/ad-service"
 
 interface ImageUploadSectionProps {
   onAnalysisStart: () => void
@@ -39,6 +40,12 @@ export default function ImageUploadSection({
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [supportedFormats, setSupportedFormats] = useState<SupportedFormat[]>([])
+  const [showAdModal, setShowAdModal] = useState(false)
+  const [pendingModel, setPendingModel] = useState<string>("")
+  const [isWatchingAd, setIsWatchingAd] = useState(false)
+  const [adWatchTime, setAdWatchTime] = useState(0)
+  const [currentAd, setCurrentAd] = useState<AdData | null>(null)
+  const [isLoadingAd, setIsLoadingAd] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { apiRequest } = useApiRequest()
   const { token, user } = useAuth()
@@ -343,6 +350,67 @@ export default function ImageUploadSection({
     return supportedFormats.map(format => `.${format.extension.toLowerCase()}`).join(',')
   }
 
+  // 모델 변경 핸들러
+  const handleModelChange = async (newModel: string) => {
+    if (newModel !== "gpt-4o-mini") {
+      // 다른 모델 선택 시 광고 로딩 및 시청 확인
+      setPendingModel(newModel)
+      setIsLoadingAd(true)
+      
+      try {
+        // 실제 광고 데이터 로딩
+        const adData = await loadAd()
+        setCurrentAd(adData)
+        
+        // 광고 노출 추적
+        trackAdImpression(adData.id, newModel)
+        
+        setShowAdModal(true)
+      } catch (error) {
+        console.error('광고 로딩 실패:', error)
+        // 광고 로딩 실패 시 무료로 모델 변경 허용
+        onModelChange?.(newModel)
+      } finally {
+        setIsLoadingAd(false)
+      }
+    } else {
+      // gpt-4o-mini는 바로 적용
+      onModelChange?.(newModel)
+    }
+  }
+
+  // 광고 시청 시작
+  const startWatchingAd = () => {
+    setIsWatchingAd(true)
+    setAdWatchTime(0)
+    
+    // 15초 광고 타이머
+    const timer = setInterval(() => {
+      setAdWatchTime(prev => {
+        if (prev >= 14) {
+          clearInterval(timer)
+          setIsWatchingAd(false)
+          setShowAdModal(false)
+          // 상태 변경을 다음 이벤트 루프로 연기
+          setTimeout(() => {
+            onModelChange?.(pendingModel)
+          }, 0)
+          return 15
+        }
+        return prev + 1
+      })
+    }, 1000)
+  }
+
+  // 광고 건너뛰기 (모델 변경 취소)
+  const skipAd = () => {
+    setShowAdModal(false)
+    setPendingModel("")
+    setIsWatchingAd(false)
+    setAdWatchTime(0)
+    setCurrentAd(null)
+  }
+
   return (
     <div className="w-full">
       {/* Upload Card */}
@@ -356,7 +424,7 @@ export default function ImageUploadSection({
                 <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   분석 모델 선택
                 </label>
-                <Select value={selectedModel} onValueChange={onModelChange}>
+                <Select value={selectedModel} onValueChange={handleModelChange}>
                   <SelectTrigger className="w-48 bg-white border-gray-300">
                     <SelectValue placeholder="모델 선택" />
                   </SelectTrigger>
@@ -510,6 +578,95 @@ export default function ImageUploadSection({
           </div>
         </div>
       </div>
+
+      {/* 광고 시청 모달 */}
+      {showAdModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  프리미엄 모델 사용
+                </h3>
+                <button
+                  onClick={skipAd}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Play className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-gray-700 mb-2">
+                  <strong>{pendingModel}</strong> 모델을 사용하려면
+                </p>
+                <p className="text-sm text-gray-500">
+                  15초 광고를 시청해주세요
+                </p>
+              </div>
+
+              {!isWatchingAd ? (
+                <div className="space-y-3">
+                  <Button
+                    onClick={startWatchingAd}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white py-3"
+                  >
+                    <Play className="w-4 h-4 mr-2" />
+                    광고 보고 사용하기
+                  </Button>
+                  <Button
+                    onClick={skipAd}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    취소
+                  </Button>
+                </div>
+              ) : (
+                                 <div className="space-y-4">
+                   {/* 실제 광고 데이터 표시 */}
+                   {currentAd && (
+                     <div 
+                       className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-lg text-center cursor-pointer hover:opacity-90 transition-opacity"
+                       onClick={() => {
+                         // 광고 클릭 추적
+                         trackAdClick(currentAd.id, pendingModel)
+                         // 실제 환경에서는 광고 URL로 이동
+                         window.open(currentAd.clickUrl, '_blank')
+                       }}
+                     >
+                       <h4 className="font-bold text-lg mb-2">{currentAd.title}</h4>
+                       <p className="text-sm mb-3">{currentAd.description}</p>
+                       {currentAd.price && (
+                         <div className="bg-white/20 rounded-lg p-2">
+                           <p className="text-xs">특가 {currentAd.price}</p>
+                         </div>
+                       )}
+                       <p className="text-xs mt-2 opacity-75">클릭하여 자세히 보기</p>
+                     </div>
+                   )}
+                  
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600 mb-2">
+                      {15 - adWatchTime}초
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${(adWatchTime / 15) * 100}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">광고 시청 중...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
