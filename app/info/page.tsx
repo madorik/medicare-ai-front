@@ -50,19 +50,6 @@ export default function InfoPage() {
               <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
             </div>
 
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                기능
-              </a>
-              <a href="#how-it-works" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                사용법
-              </a>
-              <a href="#testimonials" className="text-gray-600 hover:text-emerald-600 transition-colors">
-                후기
-              </a>
-            </nav>
-
             <div className="flex items-center space-x-4">
               {!isLoading && (
                 <>
@@ -400,18 +387,13 @@ export default function InfoPage() {
               <h3 className="font-semibold mb-4">서비스</h3>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <Link href="/analyze" className="hover:text-white transition-colors">
-                    의료 문서 분석
-                  </Link>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    AI 채팅 상담
+                  <a href="/analyze" className="hover:text-white transition-colors">
+                    AI 진료 기록 분석
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    건강 정보 검색
+                  <a href="/analyze" className="hover:text-white transition-colors">
+                    AI 채팅 상담
                   </a>
                 </li>
               </ul>
@@ -421,19 +403,14 @@ export default function InfoPage() {
               <h3 className="font-semibold mb-4">지원</h3>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <Link href="/faq" className="hover:text-white transition-colors">
                     자주 묻는 질문
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    고객지원
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <Link href="/guide" className="hover:text-white transition-colors">
                     사용 가이드
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -442,19 +419,14 @@ export default function InfoPage() {
               <h3 className="font-semibold mb-4">법적 고지</h3>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <Link href="/terms" className="hover:text-white transition-colors">
                     이용약관
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <Link href="/privacy" className="hover:text-white transition-colors">
                     개인정보처리방침
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white transition-colors">
-                    의료면책조항
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
