@@ -149,9 +149,10 @@ export default function ImageUploadSection({
     onAnalysisStart()
 
     try {
-      // FormData로 파일 준비 (서버에서 'medicalFile' 필드명 사용)
+      // FormData로 파일 및 선택 모델 준비 (서버에서 'medicalFile', 'model' 필드 사용)
       const formData = new FormData()
       formData.append('medicalFile', file)
+      formData.append('model', selectedModel)
 
       // Authorization 헤더를 포함한 파일 업로드 및 SSE 연결 시작
       const response = await apiRequest('/api/medical/analyze', {
@@ -574,7 +575,7 @@ export default function ImageUploadSection({
                   🔒 개인정보 보호 안내
                 </h4>
                 <p className="text-xs text-blue-700 leading-relaxed">
-                  업로드된 진료 기록은 <strong>서버에 저장되지 않으며</strong>, 분석 완료 후 즉시 삭제됩니다. 
+                  업로드된 진료 기록 파일은 <strong>서버에 저장되지 않으며</strong>, 분석 완료 후 즉시 삭제됩니다. 분석 결과와 상담 기록은 서비스 제공 및 품질 개선을 위해 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다.
                 </p>
               </div>
             </div>

@@ -1200,7 +1200,7 @@ export default function HomePage() {
                 <div className="text-xs text-gray-500 mt-2 text-center px-2">
                   <div className="space-y-1">
                     <p className="hidden md:block">
-                      <strong>개인정보 보호:</strong> 업로드된 진료 기록은 서버에 저장되지 않으며, 분석 완료 후 즉시 삭제됩니다.
+                      <strong>개인정보 보호:</strong> 업로드된 진료 기록 파일은 서버에 저장되지 않으며, 분석 완료 후 즉시 삭제됩니다. 분석 결과와 상담 기록은 서비스 제공 및 품질 개선을 위해 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다.
                     </p>
                     <p>
                       MediCare AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.

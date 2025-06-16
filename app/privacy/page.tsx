@@ -104,9 +104,9 @@ export default function PrivacyPage() {
                       </div>
                       
                       <div>
-                        <h3 className="font-semibold text-gray-900">나. 의료 문서</h3>
-                        <p>• 보유기간: 분석 완료 즉시 삭제</p>
-                        <p>• 업로드된 의료 문서는 분석 목적으로만 임시 처리되며, 분석 완료 후 즉시 완전 삭제됩니다.</p>
+                        <h3 className="font-semibold text-gray-900">나. 의료 문서 및 분석 기록</h3>
+                        <p>• 보유기간: 업로드 파일 → 분석 완료 즉시 삭제 / 분석 결과 및 상담 기록 → 3일</p>
+                        <p>• 업로드된 의료 문서는 분석 목적으로만 임시 처리되며, 분석 완료 후 즉시 완전 삭제됩니다. 분석 결과와 상담 기록은 서비스 제공 및 안전 관리 목적으로 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다.</p>
                       </div>
                       
                       <div>
