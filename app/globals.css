@@ -160,3 +160,54 @@ body {
     transform: scale(1.05);
   }
 }
+
+/* 실시간 스트리밍 컨텐츠 애니메이션 */
+.streaming-content {
+  position: relative;
+  animation: content-update 0.5s ease-out;
+}
+
+@keyframes content-update {
+  0% {
+    background-color: rgba(34, 197, 94, 0.1);
+    transform: translateX(2px);
+  }
+  100% {
+    background-color: transparent;
+    transform: translateX(0);
+  }
+}
+
+/* 타이핑 커서 애니메이션 */
+.typing-cursor {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+/* 컨텐츠 글로우 효과 */
+.content-glow {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* 실시간 업데이트 펄스 */
+.realtime-pulse {
+  animation: realtime-pulse 2s ease-in-out infinite;
+}
+
+@keyframes realtime-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+}

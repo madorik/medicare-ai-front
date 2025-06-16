@@ -46,7 +46,6 @@ export default function AnalysisResults({
 }: AnalysisResultsProps) {
   const streamingRef = useRef<HTMLDivElement>(null)
   const [lastRenderedLength, setLastRenderedLength] = useState(0)
-  const [animationKey, setAnimationKey] = useState(0)
 
   // 텍스트 드래그 훅 사용
   const { 
@@ -71,23 +70,14 @@ export default function AnalysisResults({
   // 실시간 렌더링 최적화 - 새로운 컨텐츠가 추가될 때마다 애니메이션 트리거
   useEffect(() => {
     if (analysisData && analysisData.length > lastRenderedLength) {
+      console.log('🔄 분석 결과 업데이트:', {
+        이전길이: lastRenderedLength,
+        현재길이: analysisData.length,
+        신규내용: analysisData.slice(lastRenderedLength)
+      })
+      
       // 새로운 컨텐츠가 추가되었을 때
       setLastRenderedLength(analysisData.length)
-      setAnimationKey(prev => prev + 1) // 애니메이션 키 변경으로 리렌더링 트리거
-      
-      // 실시간 렌더링 효과
-      if (streamingRef.current && isAnalyzing) {
-        streamingRef.current.style.transition = 'all 0.3s ease-in-out'
-        streamingRef.current.style.transform = 'scale(1.01)'
-        streamingRef.current.style.opacity = '0.9'
-        
-        setTimeout(() => {
-          if (streamingRef.current) {
-            streamingRef.current.style.transform = 'scale(1)'
-            streamingRef.current.style.opacity = '1'
-          }
-        }, 200)
-      }
     }
   }, [analysisData, isAnalyzing, lastRenderedLength])
 
@@ -415,23 +405,6 @@ export default function AnalysisResults({
   // 일반 텍스트 렌더링 (기존 방식)
   const renderPlainText = (data: string) => (
     <Card className="border-0 shadow-lg">
-      <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-t-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            {isAnalyzing ? (
-              <Badge className="bg-blue-500 text-white border-0 shadow-sm">
-                <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                {progress > 0 ? `${progress}%` : '분석 중'}
-              </Badge>
-            ) : data ? (
-              <Badge className="bg-emerald-500 text-white border-0 shadow-sm">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                분석 완료
-              </Badge>
-            ) : null}
-          </div>
-        </div>
-      </CardHeader>
       <CardContent className="p-0">
         {/* 드래그 안내 문구 */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 p-3">
@@ -445,24 +418,12 @@ export default function AnalysisResults({
                 }
               </span>
             </div>
-            {isAnalyzing && (
-              <div className="flex items-center space-x-1 text-blue-600">
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce"></div>
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                <span className="text-xs font-medium ml-1">실시간 업데이트</span>
-              </div>
-            )}
           </div>
         </div>
         
         <div 
           ref={streamingRef}
-          className={`bg-white rounded-b-lg p-6 analysis-content relative ${
-            isDragging ? 'bg-blue-50 border-2 border-dashed border-blue-300' : ''
-          } ${selectedText ? 'bg-emerald-50 border border-emerald-200' : ''} ${
-            isAnalyzing ? 'streaming-content content-glow' : ''
-          }`}
+          className="bg-white rounded-b-lg p-6 analysis-content relative"
           style={{
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
@@ -472,10 +433,7 @@ export default function AnalysisResults({
         >
           <div className="prose prose-gray max-w-none">
             <div 
-              key={`content-${animationKey}`}
-              className={`text-gray-800 leading-relaxed text-sm select-text ${
-                isAnalyzing ? 'streaming-content' : ''
-              }`}
+              className="text-gray-800 leading-relaxed text-sm select-text"
             >
               {renderMarkdown(data)}
               {/* 실시간 분석 중일 때 타이핑 커서 표시 */}
@@ -485,9 +443,9 @@ export default function AnalysisResults({
             </div>
             
             {isAnalyzing && (
-              <div className="flex items-center space-x-2 text-emerald-600 mt-6 pt-4 border-t border-gray-100">
+              <div className="flex items-center space-x-2 text-gray-600 mt-4 pt-3 border-t border-gray-200">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm font-medium">
+                <span className="text-sm">
                   {progress > 0 ? `분석 진행 중... ${progress}%` : '분석이 계속 진행 중입니다...'}
                 </span>
               </div>
@@ -541,7 +499,7 @@ export default function AnalysisResults({
       )}
 
       {/* 분석 결과 렌더링 */}
-      {analysisData && !isAnalyzing && (
+      {analysisData && (
         renderPlainText(analysisData)
       )}
 

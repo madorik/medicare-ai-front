@@ -228,11 +228,15 @@ export default function ImageUploadSection({
                     if (data.content) {
                       const newContent = data.content
                       accumulatedText += newContent
+                      console.log('📥 SSE chunk 수신:', newContent)
+                      console.log('📊 누적 텍스트 길이:', accumulatedText.length)
                       onAnalysisResult(accumulatedText, undefined, data.progress)
+                      onStatusUpdate?.(`분석 진행 중... (${accumulatedText.length}자)`, 'info')
                     }
                     // 서버에서 누적된 전체 텍스트를 보내는 경우
                     else if (data.accumulated) {
                       accumulatedText = data.accumulated
+                      console.log('📥 SSE accumulated 수신:', data.accumulated.length, '자')
                       onAnalysisResult(accumulatedText, undefined, data.progress)
                     }
                     break
@@ -292,7 +296,10 @@ export default function ImageUploadSection({
                   break
                 }
               } catch (parseError) {
-                // SSE 데이터 파싱 실패
+                // JSON 파싱이 실패한 경우, 단순 텍스트로 간주하여 실시간 누적
+                const plainText = line.startsWith('data: ') ? line.slice(6) : line
+                accumulatedText += plainText
+                onAnalysisResult(accumulatedText)
               }
             }
           }
@@ -303,6 +310,9 @@ export default function ImageUploadSection({
         onError(errorMessage)
         setIsUploading(false)
       }
+
+      setIsUploading(false)
+      onAnalysisComplete()
     }
 
     readStream()
