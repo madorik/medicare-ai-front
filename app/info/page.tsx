@@ -97,11 +97,11 @@ export default function InfoPage() {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
               <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                의료 기록을
+                 AI가 의료 기록을
               </span>
               <br />
               <span className="text-gray-900">
-                AI가 분석해드려요
+                분석해드려요
               </span>
             </h1>
             
