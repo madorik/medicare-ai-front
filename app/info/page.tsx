@@ -191,7 +191,7 @@ export default function InfoPage() {
                 <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4">
                   <Shield className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-xl">개인정보 보호</CardTitle>
+                <CardTitle className="text-xl">안전한 개인정보 보호</CardTitle>
                 <CardDescription>
                   업로드된 모든 파일은 처리 후 즉시 삭제되며, 개인 의료 정보는 AI 챗봇 상담을 위해 임시 저장됩니다.
                 </CardDescription>

@@ -33,12 +33,14 @@ export default function LoginPage() {
 
         {/* Logo */}
         <div className="relative z-10">
-          <div className="flex items-center space-x-3 mb-8">
-            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
-              <Stethoscope className="w-7 h-7 text-emerald-600" />
+          <Link href="/info" className="block">
+            <div className="flex items-center space-x-3 mb-8 hover:opacity-80 transition-opacity cursor-pointer">
+              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                <Stethoscope className="w-7 h-7 text-emerald-600" />
+              </div>
+              <span className="text-2xl font-bold">MediCare AI</span>
             </div>
-            <span className="text-2xl font-bold">MediCare AI</span>
-          </div>
+          </Link>
 
           <div className="space-y-6">
             <h1 className="text-4xl font-bold leading-tight">
@@ -71,7 +73,7 @@ export default function LoginPage() {
             <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
             </div>
-            <span className="text-emerald-100">전문의와의 실시간 상담</span>
+            <span className="text-emerald-100">AI 챗봇 실시간 상담</span>
           </div>
         </div>
       </div>
@@ -90,12 +92,14 @@ export default function LoginPage() {
 
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center mb-8">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
-                <Stethoscope className="w-6 h-6 text-white" />
+            <Link href="/info" className="block">
+              <div className="flex items-center space-x-3 hover:opacity-80 transition-opacity cursor-pointer">
+                <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
+                  <Stethoscope className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
               </div>
-              <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
-            </div>
+            </Link>
           </div>
 
           <Card className="border-0 shadow-xl">
