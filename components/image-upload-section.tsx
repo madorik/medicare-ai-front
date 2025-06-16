@@ -4,6 +4,7 @@ import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield } from "lucide-react"
 import { useApiRequest, useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
@@ -14,6 +15,8 @@ interface ImageUploadSectionProps {
   onAnalysisComplete: () => void
   onError: (error: string) => void
   onStatusUpdate?: (status: string, type?: 'info' | 'warning' | 'error' | 'success') => void
+  selectedModel?: string
+  onModelChange?: (model: string) => void
 }
 
 interface SupportedFormat {
@@ -28,7 +31,9 @@ export default function ImageUploadSection({
   onAnalysisResult, 
   onAnalysisComplete, 
   onError, 
-  onStatusUpdate 
+  onStatusUpdate,
+  selectedModel = "gpt-4o-mini",
+  onModelChange
 }: ImageUploadSectionProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -344,7 +349,28 @@ export default function ImageUploadSection({
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
         {/* Content */}
         <div className="p-6">
-                      <div 
+          {/* GPT 모델 선택 */}
+          {!uploadedFile && !isUploading && onModelChange && (
+            <div className="mb-6">
+              <div className="flex items-center justify-end space-x-3">
+                <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
+                  분석 모델 선택
+                </label>
+                <Select value={selectedModel} onValueChange={onModelChange}>
+                  <SelectTrigger className="w-48 bg-white border-gray-300">
+                    <SelectValue placeholder="모델 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                    <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+                    <SelectItem value="gpt-4.1">gpt-4.1</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          <div 
               className={`
                 relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300
                 ${error ? 'border-red-300 bg-red-50' : 

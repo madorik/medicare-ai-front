@@ -66,7 +66,7 @@ export default function HomePage() {
   const [analysisProgress, setAnalysisProgress] = useState(0)
   const [statusMessage, setStatusMessage] = useState("")
   
-  // GPT 모델 선택 상태
+  // GPT 모델 선택 상태 - 기본값을 o4-mini로 설정
   const [selectedModel, setSelectedModel] = useState("gpt-4o-mini")
   
   // 기존 상태들
@@ -761,7 +761,9 @@ export default function HomePage() {
                       <SelectValue placeholder="모델 선택" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gpt-4o-mini">GPT-4o Mini</SelectItem>
+                      <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                      <SelectItem value="gpt-4o">gpt-4o</SelectItem>
+                      <SelectItem value="gpt-4.1">gpt-4.1</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -993,6 +995,8 @@ export default function HomePage() {
                         onAnalysisComplete={handleAnalysisComplete}
                         onError={handleAnalysisError}
                         onStatusUpdate={handleStatusUpdate}
+                        selectedModel={selectedModel}
+                        onModelChange={setSelectedModel}
                       />
                     </div>
                   </div>
