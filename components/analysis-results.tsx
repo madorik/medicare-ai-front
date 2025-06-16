@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain, Clock, Loader2, Activity, Download, Share, Calendar, Shield, MessageSquare, Stethoscope, ClipboardList, AlertTriangle, Target, TrendingUp } from "lucide-react"
+import { FileText, AlertCircle, CheckCircle, ExternalLink, Brain, Clock, Loader2, Activity, Download, Share, Calendar, Shield, MessageSquare, Stethoscope, ClipboardList, AlertTriangle, Target, TrendingUp, Copy, Check } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useTextDrag } from "@/hooks/use-text-drag"
 
@@ -46,6 +46,9 @@ export default function AnalysisResults({
 }: AnalysisResultsProps) {
   const streamingRef = useRef<HTMLDivElement>(null)
   const [lastRenderedLength, setLastRenderedLength] = useState(0)
+  
+  // 복사 기능 관련 상태
+  const [isCopied, setIsCopied] = useState(false)
 
   // 텍스트 드래그 훅 사용
   const { 
@@ -99,6 +102,35 @@ export default function AnalysisResults({
   }
 
   const parsedData = parseAnalysisData(analysisData)
+
+  // 분석 결과 복사 함수
+  const copyAnalysisResult = async () => {
+    if (!analysisData) return
+
+    try {
+      // 마크다운을 일반 텍스트로 변환
+      const cleanText = analysisData
+        .replace(/\*\*(.*?)\*\*/g, '$1') // 굵은 글씨 제거
+        .replace(/\*(.*?)\*/g, '$1') // 기울임 제거
+        .replace(/`(.*?)`/g, '$1') // 인라인 코드 제거
+        .replace(/#{1,6}\s*(.*)/g, '$1') // 헤더 제거
+        .replace(/^[-*+]\s*/gm, '• ') // 리스트 마커를 불릿으로 변경
+        .replace(/^\d+\.\s*/gm, '') // 숫자 리스트 마커 제거
+        .replace(/^>\s*/gm, '') // 인용문 마커 제거
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // 링크를 텍스트만 남김
+        .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1') // 이미지를 alt 텍스트만 남김
+
+      await navigator.clipboard.writeText(cleanText)
+      setIsCopied(true)
+      
+      // 2초 후 상태 초기화
+      setTimeout(() => {
+        setIsCopied(false)
+      }, 2000)
+    } catch (error) {
+      // 복사 실패 시 아무 처리 안함
+    }
+  }
 
   // **텍스트** 형태를 굵은 텍스트로 변환하는 함수
   const formatBoldText = (text: string | number | null | undefined) => {
@@ -453,6 +485,27 @@ export default function AnalysisResults({
               </div>
             )}
           </div>
+        </div>
+        
+        {/* 복사 버튼 - 결과 내용 하단 */}
+        <div className="flex justify-end p-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={copyAnalysisResult}
+            disabled={isAnalyzing}
+            className={`transition-all duration-200 ${
+              isCopied 
+                ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' 
+                : 'hover:bg-blue-50 hover:border-blue-200'
+            }`}
+          >
+            {isCopied ? (
+              <Check className="w-4 h-4" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
