@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield, Play, X } from "lucide-react"
+import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield, Play, X, Crown } from "lucide-react"
 import { useApiRequest, useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { loadAd, trackAdImpression, trackAdClick, type AdData } from "@/lib/ad-service"
@@ -441,8 +441,18 @@ export default function ImageUploadSection({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
-                    <SelectItem value="gpt-4o">gpt-4o</SelectItem>
-                    <SelectItem value="gpt-4.1">gpt-4.1</SelectItem>
+                    <SelectItem value="gpt-4o">
+                      <div className="flex items-center space-x-2">
+                        <span>gpt-4o</span>
+                        <Crown className="w-3 h-3 text-amber-500" />
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="gpt-4.1">
+                      <div className="flex items-center space-x-2">
+                        <span>gpt-4.1</span>
+                        <Crown className="w-3 h-3 text-amber-500" />
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -585,9 +595,9 @@ export default function ImageUploadSection({
                   🔒 개인정보 보호 안내
                 </h4>
                 <p className="text-xs text-blue-700 leading-relaxed">
-                  업로드된 문서 파일은 <strong>서버에 저장되지 않으며</strong>, 해석 완료 후 즉시 삭제됩니다. 해석 결과와 상담 기록은 서비스 제공 및 품질 개선을 위해 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다.
-            <br />
-            <span className="text-sm text-yellow-700 block mt-2">※ 본 서비스는 교육 및 정보 제공 목적이며, 의료 진단을 대체하지 않습니다.</span>
+                  업로드된 문서 파일은 <strong>서버에 저장되지 않으며</strong>, 해석 완료 후 즉시 삭제됩니다. <br />
+                    해석 결과와 상담 기록은 서비스 제공 및 품질 개선을 위해 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다. <br />
+                <span className="text-sm text-yellow-700 block mt-2">※ 본 서비스는 교육 및 정보 제공 목적이며, 의료 진단을 대체하지 않습니다.</span>
                 </p>
               </div>
             </div>

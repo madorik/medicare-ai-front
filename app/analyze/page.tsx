@@ -818,13 +818,23 @@ export default function HomePage() {
               {showAnalysis ? (
                 <div className="flex items-center space-x-3">
                   <Select value={selectedModel} onValueChange={handleHeaderModelChange}>
-                    <SelectTrigger className="w-44 md:w-52">
+                    <SelectTrigger className="w-48">
                       <SelectValue placeholder="모델 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
-                      <SelectItem value="gpt-4o">gpt-4o</SelectItem>
-                      <SelectItem value="gpt-4.1">gpt-4.1</SelectItem>
+                      <SelectItem value="gpt-4o">
+                        <div className="flex items-center justify-between w-full">
+                          <span>gpt-4o</span>
+                          <Badge className="bg-amber-500 text-white text-xs ml-2">Premium</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="gpt-4.1">
+                        <div className="flex items-center justify-between w-full">
+                          <span>gpt-4.1</span>
+                          <Badge className="bg-amber-500 text-white text-xs ml-2">Premium</Badge>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1061,31 +1071,6 @@ export default function HomePage() {
                       />
                     </div>
                   </div>
-
-                  {/* Features */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
-                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <Brain className="w-5 h-5 text-emerald-600" />
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">AI 해석</h3>
-                      <p className="text-xs text-gray-600">최신 AI 기술로 정확하고 빠른 문서 해석</p>
-                    </div>
-                    <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <Shield className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">개인정보 보호</h3>
-                      <p className="text-xs text-gray-600">업로드된 파일은 처리 완료 후 즉시 삭제됩니다</p>
-                    </div>
-                    <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
-                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <FileText className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">다양한 형식</h3>
-                      <p className="text-xs text-gray-600">JPG, PNG, PDF 등 다양한 의료 문서 형식 지원</p>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1203,7 +1188,7 @@ export default function HomePage() {
                 <div className="text-xs text-gray-500 mt-2 text-center px-2">
                   <div className="space-y-1">
                     <p className="hidden md:block">
-                      업로드된 문서 파일은 서버에 저장되지 않으며, 처리 완료 후 즉시 삭제됩니다.
+                      업로드된 문서 파일은 서버에 저장되지 않으며, 처리 완료 후 즉시 삭제됩니다. <br />
                     </p>
                     <p>
                       MediCare AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.

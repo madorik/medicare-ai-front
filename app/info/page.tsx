@@ -351,7 +351,6 @@ export default function InfoPage() {
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
             복잡한 의료 용어, 이제 걱정하지 마세요.
             <br />
-            <span className="text-sm text-gray-500">교육 및 정보 제공 목적</span>
           </p>
           
           <div className="flex flex-col md:flex-row gap-4 justify-center">
@@ -368,7 +367,7 @@ export default function InfoPage() {
           </div>
 
           <p className="text-sm mt-6 opacity-70">
-            가입비, 월 사용료 없음 • 개인정보 보호 • 즉시 사용 가능
+            가입비, 월 사용료 없음 • 안전한 개인정보 보호 • 즉시 사용 가능
           </p>
         </div>
       </section>
