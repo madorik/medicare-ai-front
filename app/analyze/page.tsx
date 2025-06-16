@@ -248,6 +248,13 @@ export default function HomePage() {
     
     // 토스트 알림
     addToast('선택한 텍스트가 입력창에 추가되었습니다!', 'success');
+    
+    // 모바일에서만 분석 결과 영역 닫기
+    if (window.innerWidth < 768) {
+      // 모바일: 결과 모달 닫기
+      setIsMobileResultsOpen(false);
+    }
+    // 데스크톱에서는 분석 결과 패널 유지 (접지 않음)
   }
 
   // 텍스트 메시지를 바로 전송하는 함수

@@ -11,6 +11,16 @@ export const useTextDrag = (options: UseTextDragOptions = {}) => {
   const [selectedText, setSelectedText] = useState('')
   const [labelPosition, setLabelPosition] = useState<{ x: number; y: number } | null>(null)
   const [showLabel, setShowLabel] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // 모바일 디바이스 감지
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
+      return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent)
+    }
+    setIsMobile(checkMobile())
+  }, [])
 
   // 상태 변화 디버깅
   useEffect(() => {
@@ -19,6 +29,7 @@ export const useTextDrag = (options: UseTextDragOptions = {}) => {
   const startPositionRef = useRef<{ x: number; y: number } | null>(null)
   const selectionRef = useRef<Selection | null>(null)
   const dragTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const selectionTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const handleMouseDown = useCallback((event: React.MouseEvent) => {
     // 우클릭이나 다른 버튼 클릭은 무시
@@ -116,6 +127,107 @@ export const useTextDrag = (options: UseTextDragOptions = {}) => {
     }
   }, [options])
 
+  // 모바일용 터치 이벤트 핸들러들
+  const handleTouchStart = useCallback((event: React.TouchEvent) => {
+    const touch = event.touches[0]
+    startPositionRef.current = { x: touch.clientX, y: touch.clientY }
+    setIsDragging(false)
+    setSelectedText('')
+    setShowLabel(false)
+    setLabelPosition(null)
+  }, [])
+
+  const handleTouchMove = useCallback((event: React.TouchEvent) => {
+    if (startPositionRef.current) {
+      const touch = event.touches[0]
+      const deltaX = Math.abs(touch.clientX - startPositionRef.current.x)
+      const deltaY = Math.abs(touch.clientY - startPositionRef.current.y)
+      
+      if (deltaX > 10 || deltaY > 10) {
+        setIsDragging(true)
+      }
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback((event: React.TouchEvent) => {
+    // 터치 종료 시 선택된 텍스트 확인
+    setTimeout(() => {
+      const selection = window.getSelection()
+      const selectedText = selection && selection.toString().trim()
+      
+      if (selectedText && selectedText.length >= 3) {
+        // 터치 끝 위치를 라벨 위치로 사용 (changedTouches 사용)
+        const touch = event.changedTouches[0]
+        setSelectedText(selectedText)
+        setLabelPosition({ x: touch.clientX, y: touch.clientY })
+        setShowLabel(true)
+        
+        if (options.onTextSelected) {
+          options.onTextSelected(selectedText, { x: touch.clientX, y: touch.clientY })
+        }
+        
+        selectionRef.current = selection
+      }
+      
+      setIsDragging(false)
+      startPositionRef.current = null
+    }, 150) // 터치 종료 후 약간의 지연
+  }, [options])
+
+  // 모바일에서 텍스트 선택 변화 감지
+  useEffect(() => {
+    if (!isMobile) return
+
+    const handleSelectionChange = () => {
+      // 기존 타이머가 있으면 제거
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current)
+      }
+
+      // 짧은 지연 후 선택 상태 확인 (사용자가 선택을 완료할 시간 제공)
+      selectionTimeoutRef.current = setTimeout(() => {
+        const selection = window.getSelection()
+        const currentSelectedText = selection && selection.toString().trim()
+        
+        if (currentSelectedText && currentSelectedText.length >= 3) {
+          // 선택된 텍스트가 있으면 라벨 표시
+          const range = selection?.getRangeAt(0)
+          if (range) {
+            const rect = range.getBoundingClientRect()
+            const centerX = rect.left + rect.width / 2
+            const centerY = rect.bottom + 10 // 선택 영역 아래쪽에 표시
+            
+            setSelectedText(currentSelectedText)
+            setLabelPosition({ x: centerX, y: centerY })
+            setShowLabel(true)
+            
+            if (options.onTextSelected) {
+              options.onTextSelected(currentSelectedText, { x: centerX, y: centerY })
+            }
+            
+            selectionRef.current = selection
+          }
+        } else if (!currentSelectedText && selectedText) {
+          // 선택이 해제되면 라벨 숨김
+          setShowLabel(false)
+          setTimeout(() => {
+            setSelectedText('')
+            setLabelPosition(null)
+          }, 200)
+        }
+      }, 300) // 300ms 지연으로 사용자가 선택을 완료할 시간 제공
+    }
+
+    document.addEventListener('selectionchange', handleSelectionChange)
+    
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange)
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current)
+      }
+    }
+  }, [isMobile, selectedText, options])
+
 
 
   // 마우스 오버 시 라벨 표시 (라벨이 이미 표시된 경우 무시)
@@ -183,6 +295,9 @@ export const useTextDrag = (options: UseTextDragOptions = {}) => {
       if (dragTimeoutRef.current) {
         clearTimeout(dragTimeoutRef.current)
       }
+      if (selectionTimeoutRef.current) {
+        clearTimeout(selectionTimeoutRef.current)
+      }
     }
   }, [])
 
@@ -191,11 +306,16 @@ export const useTextDrag = (options: UseTextDragOptions = {}) => {
     selectedText,
     labelPosition, // 고정된 라벨 위치 (드래그 끝 위치 또는 더블클릭 위치)
     showLabel,
+    isMobile, // 모바일 여부 추가
     textDragHandlers: {
       onMouseDown: handleMouseDown,
       onMouseMove: handleMouseMove,
       onMouseUp: handleMouseUp,
       onDoubleClick: handleDoubleClick,
+      // 모바일용 터치 이벤트 핸들러 추가
+      onTouchStart: handleTouchStart,
+      onTouchMove: handleTouchMove,
+      onTouchEnd: handleTouchEnd,
     },
     onLabelClick: handleLabelClick,
     clearSelection,

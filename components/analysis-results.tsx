@@ -53,7 +53,8 @@ export default function AnalysisResults({
     isDragging, 
     selectedText, 
     labelPosition, 
-    showLabel, 
+    showLabel,
+    isMobile, 
     textDragHandlers, 
     onLabelClick, 
     clearSelection 
@@ -438,7 +439,10 @@ export default function AnalysisResults({
             <div className="flex items-center space-x-2 text-blue-700">
               <MessageSquare className="w-4 h-4" />
               <span className="text-xs font-medium">
-                텍스트를 드래그하거나 더블클릭한 후 "Add to Chat" 라벨을 클릭하여 채팅창에 입력하세요
+                {isMobile 
+                  ? "텍스트를 길게 눌러 선택한 후 'Add to Chat' 버튼을 눌러주세요" 
+                  : "텍스트를 드래그하거나 더블클릭한 후 'Add to Chat' 라벨을 클릭하여 채팅창에 입력하세요"
+                }
               </span>
             </div>
             {isAnalyzing && (
@@ -502,7 +506,10 @@ export default function AnalysisResults({
           <div className="flex items-center space-x-2 text-blue-700">
             <MessageSquare className="w-4 h-4" />
             <span className="text-xs font-medium">
-              텍스트를 드래그하거나 더블클릭한 후 "Add to Chat" 라벨을 클릭하여 채팅창에 입력하세요
+              {isMobile 
+                ? "텍스트를 길게 눌러 선택한 후 'Add to Chat' 버튼을 눌러주세요" 
+                : "텍스트를 드래그하거나 더블클릭한 후 'Add to Chat' 라벨을 클릭하여 채팅창에 입력하세요"
+              }
             </span>
           </div>
         </div>
@@ -535,16 +542,24 @@ export default function AnalysisResults({
 
       {/* 분석 결과 렌더링 */}
       {analysisData && !isAnalyzing && (
-        parsedData ? renderStructuredData(parsedData) : renderPlainText(analysisData)
+        renderPlainText(analysisData)
       )}
 
       {/* To Chat 라벨 */}
       {showLabel && selectedText && labelPosition && (
         <div 
-          className="text-drag-label fixed z-50 bg-emerald-600 text-white px-3 py-2 rounded-lg shadow-lg cursor-pointer hover:bg-emerald-700 transition-all duration-200 transform scale-95 hover:scale-100"
+          className={`text-drag-label fixed z-50 bg-emerald-600 text-white rounded-lg shadow-lg cursor-pointer hover:bg-emerald-700 transition-all duration-200 transform ${
+            isMobile 
+              ? 'px-4 py-3 scale-100 hover:scale-105 active:scale-95' // 모바일에서는 더 크게
+              : 'px-3 py-2 scale-95 hover:scale-100'
+          }`}
           style={{
-            left: labelPosition.x - 50,
-            top: labelPosition.y - 60,
+            left: isMobile 
+              ? Math.max(10, Math.min(labelPosition.x - 75, window.innerWidth - 160)) // 모바일에서는 화면 경계 고려
+              : labelPosition.x - 50,
+            top: isMobile 
+              ? Math.max(10, labelPosition.y - 70) // 모바일에서는 상단 여백 고려
+              : labelPosition.y - 60,
           }}
           onClick={onLabelClick}
           onMouseDown={(e) => {
@@ -555,11 +570,16 @@ export default function AnalysisResults({
             e.preventDefault()
             e.stopPropagation()
           }}
-
+          onTouchStart={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+          }}
         >
-          <div className="flex items-center space-x-2">
-            <MessageSquare className="w-4 h-4" />
-            <span className="text-sm font-medium">Add to Chat</span>
+          <div className={`flex items-center ${isMobile ? 'space-x-3' : 'space-x-2'}`}>
+            <MessageSquare className={isMobile ? "w-5 h-5" : "w-4 h-4"} />
+            <span className={`${isMobile ? 'text-base' : 'text-sm'} font-medium`}>
+              {isMobile ? '채팅에 추가' : 'Add to Chat'}
+            </span>
           </div>
           <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-emerald-600 rotate-45"></div>
         </div>
