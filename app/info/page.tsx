@@ -15,13 +15,26 @@ import {
   Users,
   Zap,
   Heart,
-  Award
+  Award,
+  LogOut
 } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 
 export default function InfoPage() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, logout } = useAuth()
+  const router = useRouter()
+
+  // 로그아웃 처리 함수
+  const handleLogout = async () => {
+    try {
+      await logout()
+      router.push('/info')
+    } catch (error) {
+      console.error('로그아웃 중 오류가 발생했습니다.', error)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-blue-50">
@@ -50,17 +63,27 @@ export default function InfoPage() {
               </a>
             </nav>
 
-            {/* CTA Buttons */}
             <div className="flex items-center space-x-4">
               {!isLoading && (
                 <>
                   {user ? (
-                    <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
-                      <Link href="/analyze">
-                        <FileText className="w-4 h-4 mr-2" />
-                        분석하기
-                      </Link>
-                    </Button>
+                    <div className="flex items-center space-x-3">
+                      <Button asChild className="bg-emerald-600 hover:bg-emerald-700">
+                        <Link href="/analyze">
+                          <FileText className="w-4 h-4 mr-2" />
+                          분석하기
+                        </Link>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleLogout}
+                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 flex items-center space-x-2"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>로그아웃</span>
+                      </Button>
+                    </div>
                   ) : (
                     <div className="flex items-center space-x-2">
                       <Button variant="outline" asChild>

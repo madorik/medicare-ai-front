@@ -138,8 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // 모든 관련 쿠키 삭제
       clearAllCookies()
       
-      // 강제 리로드로 완전한 상태 초기화
-      window.location.reload()
+      // 강제 리로드 제거 - 페이지 이동은 각 컴포넌트에서 처리
     }
   }
 
