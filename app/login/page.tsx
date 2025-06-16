@@ -93,11 +93,11 @@ function LoginContent() {
 
           <div className="space-y-6">
             <h1 className="text-4xl font-bold leading-tight">
-              AI 기반 의료 분석으로
+              AI 기반 문서 해석으로
               <br />더 나은 건강관리를
             </h1>
             <p className="text-emerald-100 text-lg leading-relaxed">
-              진료 기록을 업로드하고 AI의 정확한 분석을 통해
+              의료 문서를 업로드하고 AI의 정확한 해석을 통해
               <br />
               개인 맞춤형 건강 정보를 받아보세요
             </p>
@@ -110,7 +110,7 @@ function LoginContent() {
             <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
               <Brain className="w-5 h-5 text-white" />
             </div>
-            <span className="text-emerald-100">AI 기반 정확한 의료 분석</span>
+                            <span className="text-emerald-100">AI 기반 정확한 문서 해석</span>
           </div>
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">

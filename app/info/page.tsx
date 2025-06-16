@@ -98,17 +98,19 @@ export default function InfoPage() {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-6 leading-tight">
               <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                 AI가 진료 기록을
+                 AI가 의료 문서를
               </span>
               <br />
               <span className="text-gray-900">
-                분석해드려요
+                해석해드려요
               </span>
             </h1>
             
             <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
               처방전, 검사 결과지, 진단서를 업로드해주세요. <br />
-              AI가 즉시 분석하여 쉽고 명확한 의료 정보를 제공합니다.
+              AI가 즉시 해석하여 이해하기 쉬운 정보로 설명드립니다.
+              <br />
+              <span className="text-sm text-gray-500 mt-2 block">※ 본 서비스는 교육 및 정보 제공 목적이며, 의료 진단을 대체하지 않습니다.</span>
             </p>
 
             <div className="flex flex-col md:flex-row gap-4 justify-center mb-12">
@@ -122,26 +124,21 @@ export default function InfoPage() {
                   지금 무료로 시작하기
                 </Link>
               </Button>
-              
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-                <Brain className="w-5 h-5 mr-2" />
-                데모 영상 보기
-              </Button>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8 max-w-2xl mx-auto">
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-600 mb-2">98%</div>
-                <div className="text-gray-600">분석 정확도</div>
+                <div className="text-3xl font-bold text-emerald-600 mb-2">빠른</div>
+                <div className="text-gray-600">문서 해석</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-600 mb-2">30초</div>
-                <div className="text-gray-600">평균 분석 시간</div>
+                <div className="text-gray-600">평균 처리 시간</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-600 mb-2">1만+</div>
-                <div className="text-gray-600">분석 완료</div>
+                <div className="text-gray-600">문서 처리 완료</div>
               </div>
             </div>
           </div>
@@ -156,7 +153,9 @@ export default function InfoPage() {
               왜 MediCare AI인가요?
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-              AI 기술과 의료 전문 지식을 결합하여 쉽고 빠르게 진료 분석 결과를 제공합니다.
+              AI 기술을 활용하여 쉽고 빠르게 의료 문서 해석 결과를 제공합니다.
+              <br />
+              <span className="text-sm text-gray-500">※ 교육 및 정보 제공 목적으로만 사용하시기 바랍니다.</span>
             </p>
           </div>
 
@@ -166,9 +165,11 @@ export default function InfoPage() {
                 <div className="w-12 h-12 bg-emerald-600 rounded-lg flex items-center justify-center mb-4">
                   <Brain className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-xl">AI 기반 정확한 분석</CardTitle>
+                <CardTitle className="text-xl">AI 기반 정확한 해석</CardTitle>
                 <CardDescription>
-                  최신 의료 AI 모델로 처방전과 검사 결과를 정확하게 분석하여 이해하기 쉬운 정보로 변환합니다.
+                  최신 AI 모델로 처방전과 검사 결과를 해석하여 이해하기 쉬운 정보로 변환합니다.
+                  <br />
+                  <span className="text-xs text-gray-500 mt-1 block">※ 참고용 정보이며 의료 진단을 대체하지 않습니다.</span>
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -178,9 +179,9 @@ export default function InfoPage() {
                 <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-4">
                   <Clock className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-xl">빠른 실시간 분석</CardTitle>
+                <CardTitle className="text-xl">빠른 실시간 처리</CardTitle>
                 <CardDescription>
-                  업로드 후 30초 이내로 분석 결과를 제공하여 빠르게 분석 결과를 확인할 수 있습니다.
+                  업로드 후 30초 이내로 해석 결과를 제공하여 빠르게 문서 내용을 확인할 수 있습니다.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -190,9 +191,9 @@ export default function InfoPage() {
                 <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center mb-4">
                   <Shield className="w-6 h-6 text-white" />
                 </div>
-                <CardTitle className="text-xl">완벽한 개인정보 보호</CardTitle>
+                <CardTitle className="text-xl">개인정보 보호</CardTitle>
                 <CardDescription>
-                  업로드된 모든 파일은 분석 후 즉시 삭제되며, 개인 의료 정보는 절대 저장되지 않습니다.
+                  업로드된 모든 파일은 처리 후 즉시 삭제되며, 개인 의료 정보는 AI 챗봇 상담을 위해 임시 저장됩니다.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -208,7 +209,9 @@ export default function InfoPage() {
               간단한 3단계로 완료
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-600">
-              복잡한 의료 용어도 쉽게 이해할 수 있도록 도와드립니다.
+              복잡한 의료 용어도 쉽게 이해할 수 있도록 해석해드립니다.
+              <br />
+              <span className="text-sm text-gray-500">※ 교육 및 정보 제공 목적</span>
             </p>
           </div>
 
@@ -217,7 +220,7 @@ export default function InfoPage() {
               <div className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <FileText className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-4">1. 파일 업로드</h3>
+              <h3 className="text-xl font-semibold mb-2">1. 문서 업로드</h3>
               <p className="text-gray-600">
                 처방전, 검사 결과지, 진단서 등의 의료 문서를 간단히 드래그하여 업로드하세요.
               </p>
@@ -227,9 +230,9 @@ export default function InfoPage() {
               <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Brain className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-4">2. AI 분석</h3>
+              <h3 className="text-xl font-semibold mb-2">2. AI 해석</h3>
               <p className="text-gray-600">
-                고도화된 의료 AI가 문서를 분석하여 주요 정보를 추출하고 해석합니다.
+                고도화된 AI가 문서를 해석하여 주요 정보를 추출하고 설명합니다.
               </p>
             </div>
 
@@ -237,9 +240,11 @@ export default function InfoPage() {
               <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                 <CheckCircle className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-lg sm:text-xl font-semibold mb-4">3. 결과 확인</h3>
+              <h3 className="text-xl font-semibold mb-2">3. 결과 확인</h3>
               <p className="text-gray-600">
-                이해하기 쉬운 한국어로 변환된 분석 결과를 확인하고 추가 질문도 할 수 있습니다.
+                이해하기 쉬운 한국어로 변환된 해석 결과를 확인하고 궁금한 점을 질문하세요.
+                <br />
+                <span className="text-xs text-gray-500 mt-1 block">※ 참고용 정보입니다</span>
               </p>
             </div>
           </div>
@@ -303,8 +308,8 @@ export default function InfoPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  "아이들 처방전을 받을 때마다 궁금했던 약물 정보들을 상세히 알 수 있어서 안심이 돼요. 
-                  부작용이나 주의사항도 친절하게 설명해줍니다."
+                  "아이들 처방전을 받을 때마다 궁금했던 약물 정보들을 쉽게 알 수 있어서 도움이 돼요.
+                  복용법이나 주의사항도 친절하게 설명해줍니다."
                 </p>
               </CardContent>
             </Card>
@@ -328,8 +333,8 @@ export default function InfoPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600">
-                  "혈액검사 결과를 받았는데 의사 선생님께 묻기 부끄러웠던 내용들을 편하게 물어볼 수 있어서 좋아요. 
-                  24시간 언제든 사용할 수 있는 점도 장점입니다."
+                  "혈액검사 결과를 받았는데 궁금했던 내용들을 편하게 확인할 수 있어서 좋아요.
+                  복잡한 의료 용어를 쉽게 풀어서 설명해주네요."
                 </p>
               </CardContent>
             </Card>
@@ -344,8 +349,9 @@ export default function InfoPage() {
             지금 바로 시작해보세요
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            복잡한 의료 용어, 이제 걱정하지 마세요. 
-            AI가 쉽고 정확하게 설명해드립니다.
+            복잡한 의료 용어, 이제 걱정하지 마세요.
+            <br />
+            <span className="text-sm text-gray-500">교육 및 정보 제공 목적</span>
           </p>
           
           <div className="flex flex-col md:flex-row gap-4 justify-center">
@@ -362,7 +368,7 @@ export default function InfoPage() {
           </div>
 
           <p className="text-sm mt-6 opacity-70">
-            가입비, 월 사용료 없음 • 개인정보 완벽 보호 • 즉시 사용 가능
+            가입비, 월 사용료 없음 • 개인정보 보호 • 즉시 사용 가능
           </p>
         </div>
       </section>
@@ -380,7 +386,7 @@ export default function InfoPage() {
               </div>
               <p className="text-gray-400 text-sm">
                 AI 기술로 의료 정보를 더 쉽고 빠르게  <br />
-                이해할 수 있도록 돕습니다.
+                <span className="text-sm text-gray-500">이해할 수 있도록 도와드립니다</span>
               </p>
             </div>
 

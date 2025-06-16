@@ -23,14 +23,13 @@ import Link from "next/link"
 const steps = [
   {
     number: 1,
-    title: "파일 업로드",
+    title: "1. 문서 업로드",
     description: "처방전, 검사 결과지, 진단서 등의 의료 문서를 업로드하세요.",
     icon: Upload,
     details: [
-      "JPG, PNG, PDF 형식의 파일을 지원합니다",
-      "최대 파일 크기는 5MB입니다",
-      "드래그 앤 드롭 또는 클릭하여 파일을 선택할 수 있습니다",
-      "여러 장의 이미지가 있는 경우 하나씩 업로드해주세요"
+      "JPG, PNG, PDF 형식 지원",
+      "최대 5MB 크기 제한",
+      "여러 파일 동시 업로드 가능"
     ]
   },
   {

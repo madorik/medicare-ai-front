@@ -14,8 +14,8 @@ export default function ExpertConsultation() {
   const experts = [
     {
       id: 1,
-      name: "김민수 의사",
-      specialty: "내과 전문의",
+      name: "김민수 건강상담사",
+      specialty: "건강 정보 상담",
       experience: "15년",
       rating: 4.9,
       reviews: 127,
@@ -23,12 +23,12 @@ export default function ExpertConsultation() {
       nextSlot: "오늘 오후 2:00",
       image: "/placeholder.svg?height=60&width=60",
       consultationTypes: ["화상 상담", "전화 상담", "채팅 상담"],
-      price: "50,000원",
+      price: "30,000원",
     },
     {
       id: 2,
-      name: "이지영 약사",
-      specialty: "임상약사",
+      name: "이지영 영양상담사",
+      specialty: "영양 정보 상담",
       experience: "12년",
       rating: 4.8,
       reviews: 89,
@@ -36,12 +36,12 @@ export default function ExpertConsultation() {
       nextSlot: "내일 오전 10:00",
       image: "/placeholder.svg?height=60&width=60",
       consultationTypes: ["화상 상담", "채팅 상담"],
-      price: "30,000원",
+      price: "25,000원",
     },
     {
       id: 3,
-      name: "박준호 의사",
-      specialty: "심장내과 전문의",
+      name: "박준호 운동상담사",
+      specialty: "운동 건강 상담",
       experience: "20년",
       rating: 5.0,
       reviews: 203,
@@ -49,15 +49,16 @@ export default function ExpertConsultation() {
       nextSlot: "내일 오후 4:00",
       image: "/placeholder.svg?height=60&width=60",
       consultationTypes: ["화상 상담", "전화 상담"],
-      price: "80,000원",
+      price: "35,000원",
     },
   ]
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center mb-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">전문가 상담</h3>
-        <p className="text-gray-600">의료 전문가와 1:1 상담을 받아보세요</p>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">건강 정보 상담</h3>
+        <p className="text-gray-600">건강 관리 전문가와 1:1 정보 상담을 받아보세요</p>
+        <p className="text-sm text-gray-500 mt-2">※ 교육 및 정보 제공 목적이며, 의료 진단을 대체하지 않습니다</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -132,12 +133,12 @@ export default function ExpertConsultation() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Calendar className="w-5 h-5" />
-                <span>상담 예약</span>
+                <span>정보 상담 예약</span>
               </CardTitle>
               <CardDescription>
                 {selectedExpert
-                  ? `${experts.find((e) => e.id === selectedExpert)?.name}님과의 상담을 예약하세요`
-                  : "전문가를 선택해주세요"}
+                  ? `${experts.find((e) => e.id === selectedExpert)?.name}님과의 건강 정보 상담을 예약하세요`
+                  : "상담사를 선택해주세요"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -191,15 +192,21 @@ export default function ExpertConsultation() {
                         <span className="text-sm text-gray-600">예상 상담 시간</span>
                         <span className="font-medium">30분</span>
                       </div>
+                      <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-xs text-yellow-800">
+                          ※ 본 상담은 교육 및 정보 제공 목적이며, 의료 진단이나 치료를 대체하지 않습니다.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700">상담 예약하기</Button>
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700">정보 상담 예약하기</Button>
                 </>
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                  <p>상담받고 싶은 전문가를 선택해주세요</p>
+                  <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>건강 정보 상담사를 선택해주세요</p>
+                  <p className="text-xs mt-2">교육 및 정보 제공 목적</p>
                 </div>
               )}
             </CardContent>

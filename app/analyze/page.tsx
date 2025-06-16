@@ -131,7 +131,7 @@ export default function HomePage() {
       if (messages.length === 0) {
         addMessage(
           "assistant",
-          "안녕하세요! 의료 상담 AI입니다. 🩺\n\n건강과 관련된 궁금한 점이나 증상에 대해 문의해주세요. 정확한 의학 정보를 바탕으로 도움을 드리겠습니다.\n\n⚠️ 응급상황 시에는 즉시 119에 신고하거나 가까운 응급실을 방문하세요."
+          "안녕하세요! 의료 문서 해석 AI입니다. 📋\n\n업로드하신 문서나 건강 정보에 대해 궁금한 점을 질문해주세요. 이해하기 쉬운 정보로 설명드리겠습니다.\n\n⚠️ 본 서비스는 교육 및 정보 제공 목적이며, 응급상황 시에는 즉시 119에 신고하거나 가까운 응급실을 방문하세요."
         )
       }
     }
@@ -183,7 +183,7 @@ export default function HomePage() {
     // 초기 AI 메시지 추가
     addMessage(
       "assistant",
-      "안녕하세요! 진료 기록 분석이 완료되었습니다. 분석 결과에 대해 궁금한 점이 있으시면 질문해주세요."
+      "안녕하세요! 문서 해석이 완료되었습니다. 해석 결과에 대해 궁금한 점이 있으시면 질문해주세요.\n\n※ 본 정보는 교육 목적이며, 정확한 진단은 의료진과 상담하시기 바랍니다."
     )
   }
 
@@ -659,6 +659,8 @@ export default function HomePage() {
                       <li>• "당뇨병 식단 관리는 어떻게 하나요?"</li>
                       <li>• "감기 증상 완화 방법"</li>
                       <li>• "약물 복용 시 주의사항"</li>
+                      <li>• "검사 수치 의미"</li>
+                      <li>• "처방 내용 설명"</li>
                     </ul>
                   </div>
 
@@ -673,8 +675,8 @@ export default function HomePage() {
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                     <h4 className="font-medium text-gray-800 mb-2">⚠️ 중요 안내</h4>
                     <p className="text-sm text-gray-700">
-                      이 상담은 일반적인 의학 정보 제공을 목적으로 하며, 
-                      정확한 진단이나 치료를 대체할 수 없습니다. 
+                      본 서비스는 교육 및 정보 제공 목적이며, <br />
+                      정확한 진단이나 치료를 대체할 수 없습니다.
                       구체적인 건강 문제는 의료진과 상담하세요.
                     </p>
                   </div>
@@ -746,7 +748,8 @@ export default function HomePage() {
                     <span>파일 분석</span>
                   </Button>
                   <div className="text-xs md:text-sm text-gray-400">
-                    <p>AI와 직접 의료 상담을 하고 있습니다. 궁금한 건강 정보를 물어보세요.</p>
+                    <p>AI와 직접 건강 정보 상담을 하고 있습니다. 궁금한 내용을 물어보세요.</p>
+                    <p className="text-xs text-gray-500 mt-1">※ 교육 및 정보 제공 목적</p>
                   </div>
                 </>
               ) : showAnalysis ? (
@@ -762,9 +765,9 @@ export default function HomePage() {
               ) : (
                 <>
                   <div className="text-xs md:text-sm text-gray-400">
-                    <p>의료 진료 기록 분석 AI 서비스입니다.</p>
-                    <br />
-                    <p>처방전, 검사 결과지, 진단서 등을 업로드하여 AI 분석을 받아보세요.</p>
+                    <p>의료 문서 해석 AI 서비스입니다.</p>
+                    <p className="text-xs text-gray-500 mt-1">※ 참고용 정보 제공</p>
+                    <p>처방전, 검사 결과지, 진단서 등을 업로드하여 AI 해석을 받아보세요.</p>
                   </div>
                   
                   {/* Contact 버튼 */}
@@ -1036,11 +1039,11 @@ export default function HomePage() {
                   <div className="mb-6">
                     <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
                       <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                        AI 의료 분석 새로운 경험
+                        AI 의료 문서 해석 새로운 경험
                       </span>
                     </h1>
                     <p className="text-sm md:text-base text-gray-500 max-w-2xl mx-auto mb-6">
-                      처방전, 검사 결과지, 진단서를 업로드하면 AI가 즉시 분석하여 상세한 의료 정보를 제공합니다
+                      처방전, 검사 결과지, 진단서를 업로드하면 AI가 즉시 해석하여 상세한 정보를 제공합니다
                     </p>
                   </div>
 
@@ -1065,15 +1068,15 @@ export default function HomePage() {
                       <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                         <Brain className="w-5 h-5 text-emerald-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">AI 분석</h3>
-                      <p className="text-xs text-gray-600">최신 AI 기술로 정확하고 빠른 진료 기록 분석</p>
+                      <h3 className="font-semibold text-gray-900 mb-1 text-sm">AI 해석</h3>
+                      <p className="text-xs text-gray-600">최신 AI 기술로 정확하고 빠른 문서 해석</p>
                     </div>
                     <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
                       <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                         <Shield className="w-5 h-5 text-blue-600" />
                       </div>
                       <h3 className="font-semibold text-gray-900 mb-1 text-sm">개인정보 보호</h3>
-                      <p className="text-xs text-gray-600">업로드된 파일은 분석 후 즉시 삭제되어 안전합니다</p>
+                      <p className="text-xs text-gray-600">업로드된 파일은 처리 완료 후 즉시 삭제됩니다</p>
                     </div>
                     <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
                       <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
@@ -1170,7 +1173,7 @@ export default function HomePage() {
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder={isStreaming ? "AI가 응답하는 동안 기다려주세요..." : "진료 결과에 대해 질문해보세요..."}
+                      placeholder={isStreaming ? "AI가 응답하는 동안 기다려주세요..." : "문서 내용에 대해 질문해보세요..."}
                       className="w-full px-3 md:px-4 py-2 md:py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none h-10 md:h-12 max-h-32 text-sm md:text-base"
                       rows={1}
                       disabled={isStreaming}
@@ -1200,7 +1203,7 @@ export default function HomePage() {
                 <div className="text-xs text-gray-500 mt-2 text-center px-2">
                   <div className="space-y-1">
                     <p className="hidden md:block">
-                      <strong>개인정보 보호:</strong> 업로드된 진료 기록 파일은 서버에 저장되지 않으며, 분석 완료 후 즉시 삭제됩니다. 분석 결과와 상담 기록은 서비스 제공 및 품질 개선을 위해 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다.
+                      업로드된 문서 파일은 서버에 저장되지 않으며, 처리 완료 후 즉시 삭제됩니다.
                     </p>
                     <p>
                       MediCare AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.
@@ -1262,11 +1265,9 @@ export default function HomePage() {
                           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                             <h4 className="font-medium text-blue-800 mb-2">💡 이런 질문을 해보세요</h4>
                             <ul className="text-sm text-blue-700 space-y-1">
-                              <li>• "두통이 있어요"</li>
-                              <li>• "고혈압 관리 방법을 알려주세요"</li>
-                              <li>• "당뇨병 식단 관리는 어떻게 하나요?"</li>
-                              <li>• "감기 증상 완화 방법"</li>
                               <li>• "약물 복용 시 주의사항"</li>
+                              <li>• "검사 수치 의미"</li>
+                              <li>• "처방 내용 설명"</li>
                             </ul>
                           </div>
 
@@ -1281,8 +1282,8 @@ export default function HomePage() {
                           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                             <h4 className="font-medium text-gray-800 mb-2">⚠️ 중요 안내</h4>
                             <p className="text-sm text-gray-700">
-                              이 상담은 일반적인 의학 정보 제공을 목적으로 하며, 
-                              정확한 진단이나 치료를 대체할 수 없습니다. 
+                              본 서비스는 교육 및 정보 제공 목적이며, <br />
+                              정확한 진단이나 치료를 대체할 수 없습니다.
                               구체적인 건강 문제는 의료진과 상담하세요.
                             </p>
                           </div>

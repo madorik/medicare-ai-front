@@ -74,9 +74,10 @@ export default function PrivacyPage() {
                       <h3 className="font-semibold text-gray-900 mb-2">가. 서비스 제공</h3>
                       <ul className="list-disc pl-6 space-y-1">
                         <li>회원 가입 및 관리</li>
-                        <li>AI 의료 문서 분석 서비스 제공</li>
-                        <li>사용자 인증 및 보안 관리</li>
-                        <li>서비스 이용 기록 관리</li>
+                        <li>AI 의료 문서 해석 서비스 제공</li>
+                        <li>해석 결과에 대한 정보 제공 및 상담</li>
+                        <li>서비스 품질 개선 및 맞춤형 서비스 제공</li>
+                        <li>고객지원 및 문의사항 처리</li>
                       </ul>
                       
                       <h3 className="font-semibold text-gray-900 mb-2 mt-4">나. 서비스 개선</h3>
@@ -104,9 +105,11 @@ export default function PrivacyPage() {
                       </div>
                       
                       <div>
-                        <h3 className="font-semibold text-gray-900">나. 의료 문서 및 분석 기록</h3>
-                        <p>• 보유기간: 업로드 파일 → 분석 완료 즉시 삭제 / 분석 결과 및 상담 기록 → 3일</p>
-                        <p>• 업로드된 의료 문서는 분석 목적으로만 임시 처리되며, 분석 완료 후 즉시 완전 삭제됩니다. 분석 결과와 상담 기록은 서비스 제공 및 안전 관리 목적으로 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다.</p>
+                        <h3 className="font-semibold text-gray-900">나. 의료 문서 및 해석 기록</h3>
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-2">
+                          <p>• 업로드된 의료 문서는 해석 목적으로만 임시 처리되며, 해석 완료 후 즉시 완전 삭제됩니다. 해석 결과와 상담 기록은 서비스 제공 및 안전 관리 목적으로 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다.</p>
+                          <p className="mt-2 text-sm text-yellow-800">※ 본 서비스는 교육 및 정보 제공 목적이며, 의료 진단을 대체하지 않습니다.</p>
+                        </div>
                       </div>
                       
                       <div>
@@ -145,7 +148,12 @@ export default function PrivacyPage() {
                     </div>
                     
                     <p className="mt-4">② 민감정보 처리</p>
-                    <p className="ml-4">회사는 개인정보보호법 제23조에 따른 민감정보(의료정보 등)를 별도로 저장하지 않습니다. 업로드된 의료 문서는 분석 목적으로만 임시 처리되며, 분석 완료 즉시 완전 삭제됩니다.</p>
+                    <p className="ml-4">회사는 개인정보보호법 제23조에 따른 민감정보(의료정보 등)를 별도로 저장하지 않습니다. 업로드된 의료 문서는 해석 목적으로만 임시 처리되며, 해석 완료 즉시 완전 삭제됩니다.</p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2 ml-4">
+                      <p className="text-sm text-blue-800">
+                        <strong>중요:</strong> 본 서비스의 모든 해석 결과는 교육 및 정보 제공 목적이며, 의학적 진단이나 치료를 대체할 수 없습니다.
+                      </p>
+                    </div>
                   </div>
                 </section>
 

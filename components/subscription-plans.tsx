@@ -12,7 +12,7 @@ export default function SubscriptionPlans() {
       price: "무료",
       description: "기본적인 AI 분석 서비스",
       icon: <Check className="w-5 h-5" />,
-      features: ["월 3회 진료 기록 분석", "기본 AI 모델 사용", "분석 결과 요약 제공", "이메일 지원"],
+      features: ["월 3회 문서 해석", "기본 AI 모델 사용", "해석 결과 요약 제공", "이메일 지원"],
       buttonText: "무료 시작",
       buttonVariant: "outline" as const,
       popular: false,
@@ -24,7 +24,7 @@ export default function SubscriptionPlans() {
       description: "고급 AI 분석과 전문가 상담",
       icon: <Star className="w-5 h-5" />,
       features: [
-        "무제한 진료 기록 분석",
+        "무제한 문서 해석",
         "고급 GPT-4 모델 사용",
         "상세 분석 리포트",
         "월 2회 전문가 상담",
