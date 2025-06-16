@@ -27,11 +27,29 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Google AdSense 코드 - dangerouslySetInnerHTML 사용 */}
+        {/* Google AdSense 코드 */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6951210541539723"
           crossOrigin="anonymous"
+        />
+        {/* Google Analytics GA4 태그 */}
+        <Script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-JP7BEMQ18S"
+          strategy="afterInteractive"
+        />
+        <Script
+          id="ga-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-JP7BEMQ18S');
+            `,
+          }}
         />
       </head>
       <body>
