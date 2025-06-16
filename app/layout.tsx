@@ -27,17 +27,33 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script
+        {/* Google AdSense 코드 - dangerouslySetInnerHTML 사용 */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6951210541539723"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
       </head>
       <body>
         <AuthProvider>
           {children}
         </AuthProvider>
+        {/* Google AdSense 코드 - body 끝에 추가 */}
+        <Script
+          id="adsbygoogle-init"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const script = document.createElement('script');
+                script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6951210541539723';
+                script.async = true;
+                script.crossOrigin = 'anonymous';
+                document.head.appendChild(script);
+              })();
+            `
+          }}
+        />
       </body>
     </html>
   )
