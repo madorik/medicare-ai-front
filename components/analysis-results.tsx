@@ -404,38 +404,6 @@ export default function AnalysisResults({
     )
   }
 
-  if (isAnalyzing) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Brain className="w-5 h-5 text-emerald-500 animate-pulse" />
-              <CardTitle className="text-emerald-700">AI가 문서를 해석하고 있습니다</CardTitle>
-            </div>
-            <div className="text-sm text-gray-500">{Math.round(progress)}%</div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-emerald-500 h-2 rounded-full transition-all duration-300 ease-out"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <p className="text-gray-600 mb-4">문서를 해석하고 있습니다...</p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
-                ※ 본 해석 결과는 교육 및 정보 제공 목적이며, 의료 진단을 대체하지 않습니다.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   // 일반 텍스트 렌더링 (기존 방식)
   const renderPlainText = (data: string) => (
     <Card className="border-0 shadow-lg">
@@ -516,18 +484,7 @@ export default function AnalysisResults({
               <div className="absolute inset-0 rounded-full border-2 border-blue-200 border-t-transparent animate-spin"></div>
             </div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">AI 분석 시작</h3>
-                            <p className="text-gray-600 mb-4">진료 기록을 분석하고 있습니다...</p>
-            {progress > 0 && (
-              <div className="w-full bg-gray-200 rounded-full h-3 mt-4 overflow-hidden">
-                <div 
-                  className="bg-gradient-to-r from-blue-500 to-emerald-500 h-3 rounded-full transition-all duration-500 ease-out" 
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-            )}
-            {progress > 0 && (
-              <p className="text-sm text-gray-500 mt-2">{progress}% 완료</p>
-            )}
+            <p className="text-gray-600 mb-4">진료 기록을 분석하고 있습니다...</p>
           </CardContent>
         </Card>
       )}
@@ -577,43 +534,7 @@ export default function AnalysisResults({
         </div>
       )}
 
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-emerald-500" />
-            <CardTitle className="text-emerald-700">문서 해석 결과</CardTitle>
-          </div>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              결과 저장
-            </Button>
-            <Button variant="outline" size="sm">
-              <Share className="w-4 h-4 mr-2" />
-              공유하기
-            </Button>
-          </div>
-        </div>
-        <CardDescription>
-          AI가 해석한 의료 문서 내용입니다. 참고용으로 활용하시기 바랍니다.
-        </CardDescription>
-      </CardHeader>
 
-      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-        <div className="flex items-start space-x-2">
-          <Shield className="w-5 h-5 text-yellow-600 mt-0.5" />
-          <div className="text-sm text-yellow-800">
-            <p className="font-medium mb-1">⚠️ 중요 안내사항</p>
-            <p>본 해석 결과는 교육 및 정보 제공 목적이며, 의료 진단이나 치료를 대체할 수 없습니다. 정확한 진단 및 치료를 위해서는 반드시 의료진과 상담하시기 바랍니다.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-800">
-          ※ 위 해석 결과는 AI에 의한 참고 정보입니다. 정확한 의료 정보는 의료진과 상담하시기 바랍니다.
-        </p>
-      </div>
     </div>
   )
 }
