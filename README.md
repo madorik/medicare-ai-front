@@ -237,9 +237,9 @@ Body: medicalFile (JPG/PNG/PDF, 최대 5MB)
 ```
 Content-Type: text/event-stream
 
-data: {"type":"connected","message":"의료 기록 분석이 시작되었습니다."}
+data: {"type":"connected","message":"진료 기록 분석이 시작되었습니다."}
 
-data: {"type":"progress","content":"의료 기록 파일을 검증하고 있습니다...","timestamp":"2024-01-01T00:00:00.000Z","step":1,"totalSteps":24,"progress":4}
+data: {"type":"progress","content":"진료 기록 파일을 검증하고 있습니다...","timestamp":"2024-01-01T00:00:00.000Z","step":1,"totalSteps":24,"progress":4}
 
 data: {"type":"complete","content":"AI 분석이 완료되었습니다...","timestamp":"2024-01-01T00:05:00.000Z","step":24,"totalSteps":24,"progress":100}
 ```

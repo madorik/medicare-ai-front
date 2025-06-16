@@ -109,7 +109,7 @@ app.post('/api/medical/analyze', upload.single('medicalFile'), async (req, res) 
     });
 
     // 연결 확인 메시지
-    res.write('data: {"type":"connected","message":"의료 기록 분석이 시작되었습니다."}\n\n');
+    res.write('data: {"type":"connected","message":"진료 기록 분석이 시작되었습니다."}\n\n');
 
     // 비동기로 분석 시작
     startMedicalAnalysis(analysisId, req.file, res);
@@ -122,10 +122,10 @@ app.post('/api/medical/analyze', upload.single('medicalFile'), async (req, res) 
   }
 });
 
-// 의료 기록 분석 시뮬레이션 함수
+// 진료 기록 분석 시뮬레이션 함수
 async function startMedicalAnalysis(analysisId, fileInfo, res) {
   const analysisSteps = [
-    "의료 기록 파일을 검증하고 있습니다...",
+    "진료 기록 파일을 검증하고 있습니다...",
     "OCR을 통해 텍스트를 추출하고 있습니다...",
     "의료 용어 및 약물명을 식별하고 있습니다...",
     "진단명 분석 중: 고혈압 (Essential Hypertension) 확인",
@@ -264,9 +264,9 @@ Body: medicalFile (JPG/PNG/PDF, 최대 5MB)
 ```
 Content-Type: text/event-stream
 
-data: {"type":"connected","message":"의료 기록 분석이 시작되었습니다."}
+data: {"type":"connected","message":"진료 기록 분석이 시작되었습니다."}
 
-data: {"type":"progress","content":"의료 기록 파일을 검증하고 있습니다...","timestamp":"2024-01-01T00:00:00.000Z","step":1,"totalSteps":24,"progress":4}
+data: {"type":"progress","content":"진료 기록 파일을 검증하고 있습니다...","timestamp":"2024-01-01T00:00:00.000Z","step":1,"totalSteps":24,"progress":4}
 
 data: {"type":"complete","content":"AI 분석이 완료되었습니다...","timestamp":"2024-01-01T00:05:00.000Z","step":24,"totalSteps":24,"progress":100}
 ```

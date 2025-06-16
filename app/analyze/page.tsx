@@ -1066,7 +1066,7 @@ export default function HomePage() {
                         <Brain className="w-5 h-5 text-emerald-600" />
                       </div>
                       <h3 className="font-semibold text-gray-900 mb-1 text-sm">AI 분석</h3>
-                      <p className="text-xs text-gray-600">최신 AI 기술로 정확하고 빠른 의료 기록 분석</p>
+                      <p className="text-xs text-gray-600">최신 AI 기술로 정확하고 빠른 진료 기록 분석</p>
                     </div>
                     <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border border-white/20 shadow-lg">
                       <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">

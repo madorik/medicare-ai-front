@@ -524,7 +524,7 @@ export default function AnalysisResults({
               <div className="absolute inset-0 rounded-full border-2 border-blue-200 border-t-transparent animate-spin"></div>
             </div>
             <h3 className="text-lg font-semibold text-gray-800 mb-2">AI 분석 시작</h3>
-            <p className="text-gray-600 mb-4">의료 기록을 분석하고 있습니다...</p>
+                            <p className="text-gray-600 mb-4">진료 기록을 분석하고 있습니다...</p>
             {progress > 0 && (
               <div className="w-full bg-gray-200 rounded-full h-3 mt-4 overflow-hidden">
                 <div 

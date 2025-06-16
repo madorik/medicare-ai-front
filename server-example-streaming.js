@@ -77,7 +77,7 @@ app.post('/api/medical/analyze', upload.single('medicalFile'), async (req, res) 
   // 연결 확인 메시지
   res.write(`data: ${JSON.stringify({
     type: 'connected',
-    message: '의료 기록 분석이 시작되었습니다.'
+    message: '진료 기록 분석이 시작되었습니다.'
   })}\n\n`);
 
   // 실시간 텍스트 스트리밍 시뮬레이션
