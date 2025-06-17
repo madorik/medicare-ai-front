@@ -184,46 +184,109 @@ export default function AnalysisResults({
         continue
       }
       
-      // 리스트 처리 (- * +)
-      if (/^[-*+]\s/.test(line)) {
-        const listItems: JSX.Element[] = []
-        let j = i
-        
-        while (j < lines.length && /^[-*+]\s/.test(lines[j].trim())) {
-          const itemText = lines[j].trim().replace(/^[-*+]\s/, '')
+      // 중첩된 리스트 처리 (- * +)
+      if (/^(\s*)[-*+]\s/.test(line)) {
+        const renderNestedList = (startIndex: number): { elements: JSX.Element, nextIndex: number } => {
+          const listItems: JSX.Element[] = []
+          let j = startIndex
+          const baseIndent = lines[startIndex].match(/^(\s*)[-*+]\s/)?.[1].length || 0
           
-          // 체크박스 리스트 처리
-          if (itemText.startsWith('[ ]') || itemText.startsWith('[x]') || itemText.startsWith('[X]')) {
-            const isChecked = itemText.startsWith('[x]') || itemText.startsWith('[X]')
-            const checkboxText = itemText.replace(/^\[[ xX]\]\s/, '')
+          while (j < lines.length) {
+            const currentLine = lines[j]
+            const trimmedLine = currentLine.trim()
             
-            listItems.push(
-              <li key={`li-${j}`} className="task-list-item ml-4 mb-1 flex items-start">
-                <input 
-                  type="checkbox" 
-                  checked={isChecked} 
-                  readOnly
-                  className="mr-2 mt-1" 
-                />
-                <span>{processInlineMarkdown(checkboxText)}</span>
-              </li>
-            )
-          } else {
-            listItems.push(
-              <li key={`li-${j}`} className="ml-4 mb-1">
-                {processInlineMarkdown(itemText)}
-              </li>
-            )
+            // 빈 줄은 건너뛰기
+            if (!trimmedLine) {
+              j++
+              continue
+            }
+            
+            // 리스트 아이템이 아니면 종료
+            if (!/^(\s*)[-*+]\s/.test(currentLine)) {
+              break
+            }
+            
+            const indentMatch = currentLine.match(/^(\s*)[-*+]\s(.*)/)
+            if (!indentMatch) {
+              j++
+              continue
+            }
+            
+            const [, indent, itemText] = indentMatch
+            const currentIndent = indent.length
+            
+            // 현재 레벨보다 깊은 들여쓰기면 종료 (하위 리스트로 처리됨)
+            if (currentIndent > baseIndent) {
+              break
+            }
+            
+            // 현재 레벨보다 얕은 들여쓰기면 종료 (상위 레벨로 돌아감)
+            if (currentIndent < baseIndent) {
+              break
+            }
+            
+            // 체크박스 리스트 처리
+            if (itemText.startsWith('[ ]') || itemText.startsWith('[x]') || itemText.startsWith('[X]')) {
+              const isChecked = itemText.startsWith('[x]') || itemText.startsWith('[X]')
+              const checkboxText = itemText.replace(/^\[[ xX]\]\s/, '')
+              
+              listItems.push(
+                <li key={`li-${j}`} className="mb-1 flex items-start">
+                  <input 
+                    type="checkbox" 
+                    checked={isChecked} 
+                    readOnly
+                    className="mr-2 mt-1" 
+                  />
+                  <span>{processInlineMarkdown(checkboxText)}</span>
+                </li>
+              )
+            } else {
+              // 다음 줄이 더 깊은 들여쓰기인지 확인 (중첩된 리스트)
+              let hasNestedList = false
+              let nestedListElement: JSX.Element | null = null
+              
+              if (j + 1 < lines.length) {
+                const nextLine = lines[j + 1]
+                const nextIndentMatch = nextLine.match(/^(\s*)[-*+]\s/)
+                if (nextIndentMatch && nextIndentMatch[1].length > currentIndent) {
+                  hasNestedList = true
+                  const nested = renderNestedList(j + 1)
+                  nestedListElement = nested.elements
+                  j = nested.nextIndex - 1 // -1 because j will be incremented
+                }
+              }
+              
+              listItems.push(
+                <li key={`li-${j}`} className="mb-1">
+                  <span>{processInlineMarkdown(itemText)}</span>
+                  {nestedListElement}
+                </li>
+              )
+            }
+            
+            j++
           }
-          j++
+          
+          const marginLeft = baseIndent > 0 ? `${baseIndent / 2}rem` : '1rem'
+          
+          return {
+            elements: (
+              <ul 
+                key={`ul-${startIndex}`} 
+                className="list-disc mb-3"
+                style={{ marginLeft }}
+              >
+                {listItems}
+              </ul>
+            ),
+            nextIndex: j
+          }
         }
         
-        elements.push(
-          <ul key={`ul-${i}`} className="list-disc ml-4 mb-3">
-            {listItems}
-          </ul>
-        )
-        i = j
+        const result = renderNestedList(i)
+        elements.push(result.elements)
+        i = result.nextIndex
         continue
       }
       
