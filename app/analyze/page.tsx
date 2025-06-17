@@ -705,13 +705,13 @@ export default function HomePage() {
       {/* Sidebar - 항상 표시 (데스크톱에서는 항상, 모바일에서는 오버레이) */}
       <div
         className={`bg-gray-900 text-white flex flex-col transition-all duration-300 z-50
-          ${isSidebarCollapsed ? "w-16" : ""}
+          ${isSidebarCollapsed ? "w-20" : ""}
           md:relative md:translate-x-0
           ${isMobileSidebarOpen ? "fixed left-0 top-0 h-full translate-x-0" : "fixed -translate-x-full md:translate-x-0"}
         `}
         style={{ 
-          width: isSidebarCollapsed ? "64px" : `${sidebarWidth}px`,
-          maxWidth: isSidebarCollapsed ? "64px" : "320px" // 모바일에서 최대 너비 제한
+          width: isSidebarCollapsed ? "80px" : `${sidebarWidth}px`,
+          maxWidth: isSidebarCollapsed ? "80px" : "320px" // 모바일에서 최대 너비 제한
         }}
       >
         {/* Sidebar Header */}
@@ -856,8 +856,6 @@ export default function HomePage() {
                   onClick={navigateToHome}
                   className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
                 >
-                  <Stethoscope className="w-6 md:w-8 h-6 md:h-8 text-emerald-600" />
-                  <span className="text-lg md:text-xl font-bold text-gray-900">MediCare AI</span>
                 </button>
               )}
          

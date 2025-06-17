@@ -403,7 +403,7 @@ export default function AnalysisResults({
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
-                ※ 본 서비스는 교육 및 정보 제공 목적입니다. 정확한 의료 정보는 의료진과 상담하시기 바랍니다.
+                ※ 정확한 의료 정보는 의료진과 상담하시기 바랍니다.
               </p>
             </div>
           </div>
