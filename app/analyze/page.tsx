@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import { flushSync } from "react-dom"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { SimpleToastContainer } from "@/components/ui/simple-toast"
 import ImageUploadSection from "@/components/image-upload-section"
@@ -26,13 +25,13 @@ import {
   ChevronLeft,
   Send,
   User,
-  Bot,
   LogOut,
   Settings,
   Shield,
   Mail,
   Play,
   X,
+  Crown,
 } from "lucide-react"
 import type React from "react"
 
@@ -719,9 +718,23 @@ export default function HomePage() {
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
             {!isSidebarCollapsed && (
-              <div className="flex items-center space-x-2">
+              <button
+                onClick={() => router.push('/info')}
+                className="flex items-center space-x-2 hover:text-emerald-400 transition-colors cursor-pointer group"
+              >
                 <Stethoscope className="w-6 h-6 text-emerald-400" />
-              </div>
+                <span className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
+                  MediCare AI
+                </span>
+              </button>
+            )}
+{isSidebarCollapsed && (
+              <button
+                onClick={() => router.push('/info')}
+                className="text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer mr-2"
+              >
+                <Stethoscope className="w-6 h-6" />
+              </button>
             )}
             <Button
               variant="ghost"
@@ -824,15 +837,15 @@ export default function HomePage() {
                     <SelectContent>
                       <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
                       <SelectItem value="gpt-4o">
-                        <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center space-x-2">
                           <span>gpt-4o</span>
-                          <Badge className="bg-amber-500 text-white text-xs ml-2">Premium</Badge>
+                          <Crown className="w-3 h-3 text-amber-500" />
                         </div>
                       </SelectItem>
                       <SelectItem value="gpt-4.1">
-                        <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center space-x-2">
                           <span>gpt-4.1</span>
-                          <Badge className="bg-amber-500 text-white text-xs ml-2">Premium</Badge>
+                          <Crown className="w-3 h-3 text-amber-500" />
                         </div>
                       </SelectItem>
                     </SelectContent>
@@ -1091,8 +1104,12 @@ export default function HomePage() {
                         }`}
                       >
                         {message.role === "assistant" && (
-                          <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-100">
-                            <Bot className="w-3 md:w-5 h-3 md:h-5 text-blue-600" />
+                          <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                            <img 
+                              src="/images/bot-profile.png" 
+                              alt="AI 어시스턴트"
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                         )}
                         <div
@@ -1116,8 +1133,12 @@ export default function HomePage() {
                   {isTyping && (
                     <div className="flex justify-start">
                       <div className="flex items-start space-x-2 max-w-[85%] md:max-w-3xl">
-                        <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-100">
-                          <Bot className="w-3 md:w-5 h-3 md:h-5 text-blue-600" />
+                        <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          <img 
+                            src="/images/bot-profile.png" 
+                            alt="AI 어시스턴트"
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                         <div className="p-2 md:p-3 rounded-lg bg-gray-100 text-gray-900">
                           <div className="flex items-center space-x-1">
