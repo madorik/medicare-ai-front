@@ -862,18 +862,6 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-2 md:space-x-4">
               <nav className="hidden md:flex items-center space-x-6">
-                {/* Contact 메뉴 */}
-                <ContactModal>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-gray-600 hover:text-emerald-600 transition-colors"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Contact
-                  </Button>
-                </ContactModal>
-           
                 {/* 로그인 상태에 따른 UI 분기 */}
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
