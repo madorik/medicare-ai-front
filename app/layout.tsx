@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { Toaster } from 'sonner'
 import Script from 'next/script'
 
 export const metadata: Metadata = {
@@ -55,6 +56,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           {children}
+          <Toaster position="top-center" richColors duration={3000} />
         </AuthProvider>
         {/* Google AdSense 코드 - body 끝에 추가 */}
         <Script

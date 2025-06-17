@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 import { 
   Stethoscope, 
   ArrowLeft,
@@ -36,22 +37,42 @@ export default function ContactPage() {
     
     // 간단한 유효성 검사
     if (!contactForm.name || !contactForm.email || !contactForm.message) {
-      alert("모든 필드를 입력해주세요.")
+      toast.error("모든 필드를 입력해주세요.")
       setIsSubmitting(false)
       return
     }
 
-    // 여기서 실제 문의 전송 로직을 구현할 수 있습니다
-    // 예: API 호출, 이메일 서비스 연동 등
-    
-    // 시뮬레이션용 지연
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    alert("문의가 성공적으로 전송되었습니다! 빠른 시일 내에 답변드리겠습니다.")
-    
-    // 폼 초기화
-    setContactForm({ name: "", email: "", message: "" })
-    setIsSubmitting(false)
+    try {
+      // 이메일 전송 API 호출
+      const response = await fetch('/api/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: contactForm.name,
+          email: contactForm.email,
+          content: contactForm.message
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || '이메일 전송에 실패했습니다.')
+      }
+
+      toast.success("문의가 성공적으로 전송되었습니다! 빠른 시일 내에 답변드리겠습니다.")
+      
+      // 폼 초기화
+      setContactForm({ name: "", email: "", message: "" })
+      
+    } catch (error) {
+      console.error('이메일 전송 오류:', error)
+      toast.error(error instanceof Error ? error.message : "이메일 전송에 실패했습니다. 잠시 후 다시 시도해주세요.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -91,9 +112,6 @@ export default function ContactPage() {
         <div className="max-w-6xl mx-auto">
           {/* Page Header */}
           <div className="text-center mb-16">
-            <div className="flex items-center justify-center mb-4">
-              <MessageSquare className="w-12 h-12 text-emerald-600" />
-            </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">문의하기</h1>
             <p className="text-xl text-gray-600">
               궁금한 점이나 건의사항이 있으시면 언제든지 연락해주세요.
@@ -140,7 +158,7 @@ export default function ContactPage() {
                       <div>
                         <Label htmlFor="email" className="flex items-center space-x-2 mb-2">
                           <Mail className="w-4 h-4" />
-                          <span>이메일</span>
+                          <span>연락 받을 이메일</span>
                         </Label>
                         <Input
                           id="email"
@@ -209,7 +227,7 @@ export default function ContactPage() {
                       <Mail className="w-5 h-5 text-emerald-600 mt-1" />
                       <div>
                         <div className="font-medium text-gray-900">이메일</div>
-                        <div className="text-gray-600">contact@medicare-ai.com</div>
+                        <div className="text-gray-600">xornjs1988@gmail.com</div>
                       </div>
                     </div>
                     
@@ -249,29 +267,6 @@ export default function ContactPage() {
                       FAQ 보기
                     </Link>
                   </Button>
-                </CardContent>
-              </Card>
-
-              {/* Response Promise */}
-              <Card className="shadow-lg border-0">
-                <CardHeader>
-                  <CardTitle className="text-lg">빠른 응답 약속</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm text-gray-700">모든 문의사항에 24시간 이내 답변</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm text-gray-700">기술적 문제는 우선적으로 처리</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-600" />
-                      <span className="text-sm text-gray-700">개인정보는 안전하게 보호</span>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             </div>
