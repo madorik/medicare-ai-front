@@ -108,7 +108,6 @@ export default function PrivacyPage() {
                         <h3 className="font-semibold text-gray-900">나. 의료 문서 및 해석 기록</h3>
                         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-2">
                           <p>• 업로드된 의료 문서는 해석 목적으로만 임시 처리되며, 해석 완료 후 즉시 완전 삭제됩니다. </p>
-                          <p> 해석 결과와 상담 기록은 서비스 제공 및 안전 관리 목적으로 <strong>최대 3일간</strong> 안전하게 보관된 뒤 자동 삭제됩니다.</p>
                           <p className="mt-2 text-sm text-yellow-800">※ 본 서비스는 교육 및 정보 제공 목적이며, 의료 진단을 대체하지 않습니다.</p>
                         </div>
                       </div>

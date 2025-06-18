@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { flushSync } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -622,6 +622,11 @@ export default function HomePage() {
     setHeaderAdWatchTime(0)
   }
 
+  // 프로필 드롭다운 토글 함수 (메모화)
+  const toggleProfileDropdown = useCallback(() => {
+    setIsProfileDropdownOpen(prev => !prev)
+  }, [])
+
   return (
     <div className="min-h-screen md:h-screen flex md:overflow-hidden bg-gray-50">
       {/* 토스트 알림 */}
@@ -872,7 +877,7 @@ export default function HomePage() {
                     {/* 사용자 프로필 드롭다운 */}
                     <div className="relative" ref={profileDropdownRef}>
                       <button
-                        onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                        onClick={toggleProfileDropdown}
                         className="flex items-center space-x-2 hover:bg-gray-50 p-2 rounded-lg transition-colors"
                       >
                         {user.profileImage ? (
@@ -926,7 +931,11 @@ export default function HomePage() {
                           {/* 메뉴 항목들 */}
                           <div className="py-1">
                             <button
-                              onClick={handleLogout}
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleLogout()
+                              }}
                               className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                             >
                               <LogOut className="w-4 h-4" />
@@ -957,7 +966,7 @@ export default function HomePage() {
               {user && (
                 <div className="md:hidden flex items-center relative" ref={profileDropdownRef}>
                   <button
-                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                    onClick={toggleProfileDropdown}
                     className="flex items-center p-1 rounded-lg hover:bg-gray-50 transition-colors"
                   >
                     {user.profileImage ? (
@@ -1007,7 +1016,11 @@ export default function HomePage() {
                       {/* 메뉴 항목들 */}
                       <div className="py-1">
                         <button
-                          onClick={handleLogout}
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            handleLogout()
+                          }}
                           className="w-full px-3 py-2 text-left text-xs text-red-600 hover:bg-red-50 flex items-center space-x-2"
                         >
                           <LogOut className="w-3 h-3" />
