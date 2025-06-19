@@ -165,7 +165,7 @@ export default function HomePage() {
   }
 
   // 분석 완료 핸들러
-  const handleAnalysisComplete = () => {
+  const handleAnalysisComplete = async () => {
     setIsAnalyzing(false)
     setAnalysisProgress(100)
     setStatusMessage("분석이 완료되었습니다.")
@@ -179,11 +179,21 @@ export default function HomePage() {
       setIsResultPanelCollapsed(false)
     }
     
-    // 초기 AI 메시지 추가
-    addMessage(
-      "assistant",
-      "안녕하세요! 문서 해석이 완료되었습니다. 해석 결과에 대해 궁금한 점이 있으시면 질문해주세요.\n\n※ 본 정보는 교육 목적이며, 정확한 진단은 의료진과 상담하시기 바랍니다."
-    )
+    // 환자 상태 설명 요청 메시지
+    const statusRequestMessage = "분석된 의료문서를 바탕으로 이해하기 쉽게 마크다운이 아니라 대화식으로 설명해주세요."
+    
+    // 스트리밍으로 환자 상태 설명 요청
+    try {
+      setIsStreaming(true)
+      setIsTyping(true)
+      await streamMessage(statusRequestMessage)
+    } catch (error) {
+      // 오류 발생 시 기본 메시지 표시
+      addMessage(
+        "assistant",
+        "안녕하세요! 문서 해석이 완료되었습니다. 해석 결과에 대해 궁금한 점이 있으시면 질문해주세요.\n\n※ 본 정보는 교육 목적이며, 정확한 진단은 의료진과 상담하시기 바랍니다."
+      )
+    }
   }
 
   // 분석 오류 핸들러
