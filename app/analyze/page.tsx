@@ -156,6 +156,10 @@ export default function HomePage() {
     setShowAnalysis(true)
     setIsSidebarCollapsed(false)
     setIsMobileSidebarOpen(false)
+    // 모바일에서는 분석 시작 시 바로 결과 모달을 열어 진행 상황을 보여줌
+    if (window.innerWidth < 768) {
+      setIsMobileResultsOpen(true)
+    }
   }
 
   // 실시간 분석 결과 핸들러
@@ -1071,7 +1075,7 @@ export default function HomePage() {
                   <div className="mb-6">
                     <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
                       <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                        AI 의료 문서 해석 새로운 경험
+                        AI 의료 문서 해석
                       </span>
                     </h1>
                     <p className="text-sm md:text-base text-gray-500 max-w-2xl mx-auto mb-6">

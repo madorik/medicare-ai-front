@@ -66,8 +66,8 @@ export default function InfoPage() {
                     <div className="flex items-center flex-wrap gap-3">
                       <Button asChild className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-200 transition-all duration-300">
                         <Link href="/analyze">
-                          <FileText className="w-4 h-4 mr-2" />
-                          분석하기
+                          <FileText className="w-4 h-4 sm:mr-2" />
+                          <span className="hidden sm:inline">분석하기</span>
                         </Link>
                       </Button>
                       <Button 
@@ -76,8 +76,8 @@ export default function InfoPage() {
                         onClick={handleLogout}
                         className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all duration-300"
                       >
-                        <LogOut className="w-4 h-4 mr-2" />
-                        로그아웃
+                        <LogOut className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">로그아웃</span>
                       </Button>
                     </div>
                   ) : (
@@ -100,12 +100,12 @@ export default function InfoPage() {
         </div>
       </header>
 
-      {/* Hero Section - 깔끔하고 모던한 디자인 */}
-      <section className="py-32 bg-white">
+      {/* Hero Section */}
+      <section className="py-20 md:py-32 bg-white">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
             
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold mb-8 text-gray-900 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-8 text-gray-900 leading-tight break-keep">
               <span className="text-emerald-600">복잡한 의료용어</span>를
               <br />
               <span className="text-emerald-600">쉽게 이해</span>하세요
@@ -120,7 +120,7 @@ export default function InfoPage() {
 
 
                          {/* 핵심 수치 */}
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-16">
                <div className="text-center">
                  <div className="text-4xl font-bold text-emerald-600 mb-2">30초</div>
                  <div className="text-gray-600">초고속 AI 해석</div>
@@ -174,7 +174,7 @@ export default function InfoPage() {
       </section>
 
       {/* Features Section - 핵심 3가지 */}
-      <section id="features" className="py-24 bg-gray-50">
+      <section id="features" className="py-20 md:py-24 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -228,7 +228,7 @@ export default function InfoPage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="py-24 bg-gradient-to-br from-gray-50 to-blue-50/30">
+      <section id="how-it-works" className="py-20 md:py-24 bg-gradient-to-br from-gray-50 to-blue-50/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 mb-4">
@@ -309,7 +309,7 @@ export default function InfoPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
             <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-emerald-50/30">
               <CardHeader>
                 <div className="flex items-center space-x-4 mb-6">
@@ -389,7 +389,7 @@ export default function InfoPage() {
       </section>
 
       {/* CTA Section - 깔끔한 최종 행동 유도 */}
-      <section className="py-24 bg-white">
+      <section className="py-20 md:py-24 bg-white">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-6">
@@ -436,7 +436,7 @@ export default function InfoPage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
         <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
             <div>
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
