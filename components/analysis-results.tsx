@@ -587,14 +587,37 @@ export default function AnalysisResults({
 
       {/* 분석 상태 표시 - 분석 데이터가 없을 때만 표시 */}
       {isAnalyzing && !analysisData && (
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-emerald-50">
-          <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 relative">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-              <div className="absolute inset-0 rounded-full border-2 border-blue-200 border-t-transparent animate-spin"></div>
+        <Card className="border border-gray-200 shadow-sm bg-white">
+          <CardContent className="p-10 text-center">
+            {/* 간단한 로딩 스피너 */}
+            <div className="w-12 h-12 mx-auto mb-6">
+              <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">AI 분석 시작</h3>
-            <p className="text-gray-600 mb-4">진료 기록을 분석하고 있습니다...</p>
+            
+            {/* 텍스트 */}
+            <div className="space-y-3">
+              <h3 className="text-xl font-semibold text-gray-900">
+                분석 중
+              </h3>
+              <p className="text-gray-600">
+                진료 기록을 분석하고 있습니다
+              </p>
+              
+              {/* 진행률 표시 */}
+              {progress > 0 && (
+                <div className="mt-4">
+                  <div className="w-48 h-1 bg-gray-200 rounded-full mx-auto overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
+                      style={{width: `${progress}%`}}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">
+                    {progress}%
+                  </p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
