@@ -1,11 +1,11 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { Toaster } from 'sonner'
 import Script from 'next/script'
 
 export const metadata: Metadata = {
-  title: 'MediCare AI',
+  title: '또닥 AI',
   description: 'Created with 민균',
   generator: 'mgjeong',
   icons: {
@@ -78,3 +78,4 @@ export default function RootLayout({
     </html>
   )
 }
+

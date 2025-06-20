@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,8 +24,8 @@ const faqData: FAQItem[] = [
   {
     id: 1,
     category: "서비스 이용",
-    question: "MediCare AI는 무엇인가요?",
-    answer: "MediCare AI는 인공지능을 활용하여 처방전, 검사 결과지, 진단서 등의 의료 문서를 해석하고 이해하기 쉬운 한국어로 설명해주는 서비스입니다. 복잡한 의료 용어를 쉽게 이해할 수 있도록 도와드리며, 교육 및 정보 제공 목적으로 운영됩니다."
+    question: "또닥 AI는 무엇인가요?",
+    answer: "또닥 AI는 인공지능을 활용하여 처방전, 검사 결과지, 진단서 등의 의료 문서를 해석하고 이해하기 쉬운 한국어로 설명해주는 서비스입니다. 복잡한 의료 용어를 쉽게 이해할 수 있도록 도와드리며, 교육 및 정보 제공 목적으로 운영됩니다."
   },
   {
     id: 2,
@@ -37,7 +37,7 @@ const faqData: FAQItem[] = [
     id: 3,
     category: "서비스 이용",
     question: "AI 해석 결과는 얼마나 정확한가요?",
-    answer: "MediCare AI는 최신 AI 모델을 사용하여 높은 품질의 해석을 제공합니다. 하지만 AI 해석 결과는 교육 및 참고용이며, 정확한 진단이나 치료 결정은 반드시 의료진과 상담하시기 바랍니다."
+    answer: "또닥 AI는 최신 AI 모델을 사용하여 높은 품질의 해석을 제공합니다. 하지만 AI 해석 결과는 교육 및 참고용이며, 정확한 진단이나 치료 결정은 반드시 의료진과 상담하시기 바랍니다."
   },
   {
     id: 4,
@@ -55,7 +55,7 @@ const faqData: FAQItem[] = [
     id: 6,
     category: "결제 및 이용",
     question: "서비스 이용료가 있나요?",
-    answer: "현재 MediCare AI는 무료로 제공되고 있습니다. 향후 프리미엄 기능이 추가될 수 있으나, 기본 분석 서비스는 계속 무료로 이용하실 수 있습니다."
+    answer: "현재 또닥 AI는 무료로 제공되고 있습니다. 향후 프리미엄 기능이 추가될 수 있으나, 기본 분석 서비스는 계속 무료로 이용하실 수 있습니다."
   },
   {
     id: 7,
@@ -115,7 +115,7 @@ export default function FAQPage() {
               <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
+              <span className="text-2xl font-bold text-gray-900">또닥 AI</span>
             </Link>
 
             {/* Back Button */}
@@ -139,7 +139,7 @@ export default function FAQPage() {
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">자주 묻는 질문</h1>
             <p className="text-xl text-gray-600">
-              MediCare AI 이용 중 궁금한 점들을 모아두었습니다.
+              또닥 AI 이용 중 궁금한 점들을 모아두었습니다.
             </p>
           </div>
 

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -93,7 +93,7 @@ export default function ContactPage() {
               <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
+              <span className="text-2xl font-bold text-gray-900">또닥 AI</span>
             </Link>
 
             {/* Back Button */}

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -55,7 +55,7 @@ export default function InfoPage() {
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
               <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                MediCare AI
+                또닥 AI
               </span>
             </div>
 
@@ -305,7 +305,7 @@ export default function InfoPage() {
               사용자들의 생생한 후기
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto">
-              실제 사용자들이 경험한 MediCare AI의 놀라운 효과를 확인해보세요.
+              실제 사용자들이 경험한 또닥 AI의 놀라운 효과를 확인해보세요.
             </p>
           </div>
 
@@ -329,7 +329,7 @@ export default function InfoPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 leading-relaxed">
-                  "복잡한 건강검진 결과를 이해하기 어려웠는데, MediCare AI 덕분에 쉽게 파악할 수 있었어요. 
+                  "복잡한 건강검진 결과를 이해하기 어려웠는데, 또닥 AI 덕분에 쉽게 파악할 수 있었어요. 
                   특히 수치들의 의미를 자세히 설명해줘서 도움이 많이 됐습니다."
                 </p>
               </CardContent>
@@ -442,7 +442,7 @@ export default function InfoPage() {
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Stethoscope className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold">MediCare AI</span>
+                <span className="text-2xl font-bold">또닥 AI</span>
               </div>
               <p className="text-gray-400 leading-relaxed mb-4">
                 AI 기술로 의료 정보를 더 쉽고 빠르게 
@@ -512,7 +512,7 @@ export default function InfoPage() {
           <div className="border-t border-gray-800 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-400 text-sm mb-4 md:mb-0">
-                &copy; 2025 MediCare AI. All rights reserved.
+                &copy; 2025 또닥 AI. All rights reserved.
               </p>
               <div className="flex items-center space-x-6 text-sm text-gray-400">
                 <span>Made with ❤️ in Korea</span>

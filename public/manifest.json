@@ -1,6 +1,6 @@
-{
-  "name": "MediCare AI",
-  "short_name": "MediCare AI",
+﻿{
+  "name": "또닥 AI",
+  "short_name": "또닥 AI",
   "description": "AI 기반 의료 진료 기록 분석 서비스",
   "start_url": "/",
   "display": "standalone",

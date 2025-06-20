@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useRef, useEffect, useCallback } from "react"
 import { flushSync } from "react-dom"
@@ -739,7 +739,7 @@ export default function HomePage() {
               >
                 <Stethoscope className="w-6 h-6 text-emerald-400" />
                 <span className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
-                  MediCare AI
+                  또닥 AI
                 </span>
               </button>
             )}
@@ -1221,7 +1221,7 @@ export default function HomePage() {
                       업로드된 문서 파일은 서버에 저장되지 않으며, 처리 완료 후 즉시 삭제됩니다. <br />
                     </p>
                     <p>
-                      MediCare AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.
+                      또닥 AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.
                     </p>
                   </div>
                 </div>
@@ -1400,3 +1400,4 @@ export default function HomePage() {
     </div>
   )
 }
+

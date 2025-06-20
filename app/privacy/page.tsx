@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
               <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
+              <span className="text-2xl font-bold text-gray-900">또닥 AI</span>
             </Link>
 
             {/* Back Button */}
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">개인정보처리방침</h1>
             <p className="text-lg text-gray-600">
-              MediCare AI의 개인정보 처리방침입니다.
+              또닥 AI의 개인정보 처리방침입니다.
             </p>
             <p className="text-sm text-gray-500 mt-2">
               시행일: 2025년 6월 6일
@@ -61,7 +61,7 @@ export default function PrivacyPage() {
                 <section className="mb-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">1. 개인정보 처리방침의 의의</h2>
                   <p className="text-gray-700 leading-relaxed mb-4">
-                    MediCare AI(이하 "회사")는 정보주체의 자유와 권리 보호를 위해 「개인정보 보호법」 및 관계 법령이 정한 바를 준수하여, 적법하게 개인정보를 처리하고 안전하게 관리하고 있습니다. 이에 「개인정보 보호법」 제30조에 따라 정보주체에게 개인정보 처리에 관한 절차 및 기준을 안내하고, 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리방침을 수립·공개합니다.
+                    또닥 AI(이하 "회사")는 정보주체의 자유와 권리 보호를 위해 「개인정보 보호법」 및 관계 법령이 정한 바를 준수하여, 적법하게 개인정보를 처리하고 안전하게 관리하고 있습니다. 이에 「개인정보 보호법」 제30조에 따라 정보주체에게 개인정보 처리에 관한 절차 및 기준을 안내하고, 이와 관련한 고충을 신속하고 원활하게 처리할 수 있도록 하기 위하여 다음과 같이 개인정보 처리방침을 수립·공개합니다.
                   </p>
                 </section>
 

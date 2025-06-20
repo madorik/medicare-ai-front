@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -90,7 +90,7 @@ export default function AuthCallbackPage() {
           <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center">
             <Stethoscope className="w-7 h-7 text-white" />
           </div>
-          <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
+          <span className="text-2xl font-bold text-gray-900">또닥 AI</span>
         </div>
         
         <div className="space-y-4">

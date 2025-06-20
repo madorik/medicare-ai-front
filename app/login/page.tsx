@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
@@ -89,7 +89,7 @@ function LoginContent() {
               <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
                 <Stethoscope className="w-7 h-7 text-emerald-600" />
               </div>
-              <span className="text-2xl font-bold">MediCare AI</span>
+              <span className="text-2xl font-bold">또닥 AI</span>
             </div>
           </Link>
 
@@ -139,7 +139,7 @@ function LoginContent() {
                 <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
                   <Stethoscope className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
+                <span className="text-2xl font-bold text-gray-900">또닥 AI</span>
               </div>
             </Link>
           </div>
@@ -203,7 +203,7 @@ function LoginContent() {
               {/* Terms and Privacy */}
               <div className="text-center space-y-4">
                 <p className="text-xs text-gray-500 leading-relaxed">
-                  로그인하면 MediCare AI의{" "}
+                  로그인하면 또닥 AI의{" "}
                   <Link href="/terms" className="text-emerald-600 hover:underline">
                     이용약관
                   </Link>

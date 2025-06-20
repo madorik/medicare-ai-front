@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,7 +22,7 @@ export default function TermsPage() {
               <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
+              <span className="text-2xl font-bold text-gray-900">또닥 AI</span>
             </Link>
 
             {/* Back Button */}
@@ -46,7 +46,7 @@ export default function TermsPage() {
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">이용약관</h1>
             <p className="text-lg text-gray-600">
-              MediCare AI 서비스 이용에 관한 약관입니다.
+              또닥 AI 서비스 이용에 관한 약관입니다.
             </p>
             <p className="text-sm text-gray-500 mt-2">
               시행일: 2025년 6월 6일
@@ -61,7 +61,7 @@ export default function TermsPage() {
                 <section className="mb-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">제1조 (목적)</h2>
                   <p className="text-gray-700 leading-relaxed mb-4">
-                    본 약관은 MediCare AI(이하 "서비스 제공자")가 제공하는 인공지능 기반 의료 문서 해석 서비스(이하 "서비스")의 이용과 관련하여 서비스 제공자와 이용자의 권리, 의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.
+                    본 약관은 또닥 AI(이하 "서비스 제공자")가 제공하는 인공지능 기반 의료 문서 해석 서비스(이하 "서비스")의 이용과 관련하여 서비스 제공자와 이용자의 권리, 의무 및 책임사항, 기타 필요한 사항을 규정함을 목적으로 합니다.
                   </p>
                 </section>
 

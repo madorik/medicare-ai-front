@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -126,7 +126,7 @@ export default function GuidePage() {
               <div className="w-10 h-10 bg-emerald-600 rounded-lg flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">MediCare AI</span>
+              <span className="text-2xl font-bold text-gray-900">또닥 AI</span>
             </Link>
 
             {/* Back Button */}
@@ -150,7 +150,7 @@ export default function GuidePage() {
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-4">사용 가이드</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              MediCare AI를 효과적으로 활용하는 방법을 단계별로 안내해드립니다.
+              또닥 AI를 효과적으로 활용하는 방법을 단계별로 안내해드립니다.
             </p>
           </div>
 

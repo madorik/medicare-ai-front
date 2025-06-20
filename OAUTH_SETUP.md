@@ -1,6 +1,6 @@
-# OAuth 설정 가이드 (JWT 토큰 기반)
+﻿# OAuth 설정 가이드 (JWT 토큰 기반)
 
-MediCare AI 프론트엔드에서 Google OAuth 로그인을 사용하기 위한 백엔드 설정 가이드입니다.
+또닥 AI 프론트엔드에서 Google OAuth 로그인을 사용하기 위한 백엔드 설정 가이드입니다.
 
 ## 1. Google Cloud Console 설정
 
