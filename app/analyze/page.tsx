@@ -1064,7 +1064,7 @@ export default function HomePage() {
         </header>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex overflow-auto md:overflow-hidden">
+        <div className="flex-1 flex overflow-hidden">
           {/* Upload or Chat Area */}
           {!showAnalysis ? (
             <div className="w-full h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col overflow-auto md:overflow-hidden">
@@ -1102,9 +1102,9 @@ export default function HomePage() {
             </div>
           ) : (
             // Chat Interface
-            <div className="flex-1 flex flex-col bg-white overflow-auto md:overflow-hidden">
+            <div className="flex-1 flex flex-col bg-white h-full min-h-0 overflow-hidden">
               {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-2 md:p-4" ref={chatContainerRef}>
+              <div className="flex-1 overflow-y-auto pt-2 pb-40 md:pb-4 md:pt-4" ref={chatContainerRef}>
                 <div className="space-y-4 md:space-y-6">
                   {messages.map((message) => (
                     <div
@@ -1184,7 +1184,7 @@ export default function HomePage() {
               )}
 
               {/* Chat Input */}
-              <div className="border-t p-2 md:p-4 bg-white flex-shrink-0">
+              <div className="border-t p-2 md:p-4 bg-white flex-shrink-0 md:static fixed bottom-0 left-0 right-0 z-20">
                 <div className="flex items-center space-x-2">
                   <div className="flex-1 relative">
                     <textarea
