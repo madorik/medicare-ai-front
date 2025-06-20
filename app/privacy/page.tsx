@@ -250,8 +250,7 @@ export default function PrivacyPage() {
                     <div className="ml-4 bg-gray-50 p-4 rounded-lg">
                       <h3 className="font-semibold text-gray-900 mb-2">개인정보 보호책임자</h3>
                       <p>• 성명: 정민균</p>
-                      <p>• 직책: 대표</p>
-                      <p>• 연락처: xornjs1988@gamil.com</p>
+                      <p>• 연락처: xornjs1988@gmail.com</p>
                     </div>
                     
                     <p>② 정보주체께서는 회사의 서비스를 이용하시면서 발생한 모든 개인정보 보호 관련 문의, 불만처리, 피해구제 등에 관한 사항을 개인정보 보호책임자 및 담당부서로 문의하실 수 있습니다. 회사는 정보주체의 문의에 대해 지체없이 답변 및 처리해드릴 것입니다.</p>
