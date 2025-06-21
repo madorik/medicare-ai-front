@@ -366,21 +366,40 @@ export default function HomePage() {
       setAnalysisProgress(100)
       setStatusMessage('저장된 분석 결과를 불러왔습니다.')
       
-      // 채팅 메시지 불러오기 (API 응답에 메시지가 있는 경우)
-      if (chatRoom.messages && Array.isArray(chatRoom.messages)) {
-        const formattedMessages: Message[] = chatRoom.messages.map((msg: any) => ({
-          id: msg.id || Date.now().toString() + Math.random(),
-          role: msg.role || (msg.sender === 'user' ? 'user' : 'assistant'),
-          content: msg.content || msg.message || '',
-          timestamp: new Date(msg.created_at || msg.timestamp || Date.now())
-        }))
+      // 채팅 히스토리 불러오기 (API 응답에 chatHistory가 있는 경우)
+      if (chatRoom.chatHistory && Array.isArray(chatRoom.chatHistory)) {
+        const formattedMessages: Message[] = []
+        
+        // chatHistory의 각 항목을 사용자 메시지와 AI 응답으로 분리하여 추가
+        chatRoom.chatHistory.forEach((chat: any) => {
+          // 사용자 메시지 추가
+          if (chat.user_message) {
+            formattedMessages.push({
+              id: `user-${chat.id}`,
+              role: "user",
+              content: chat.user_message,
+              timestamp: new Date(chat.created_at)
+            })
+          }
+          
+          // AI 응답 추가
+          if (chat.ai_response) {
+            formattedMessages.push({
+              id: `ai-${chat.id}`,
+              role: "assistant",
+              content: chat.ai_response,
+              timestamp: new Date(chat.created_at)
+            })
+          }
+        })
+        
         setMessages(formattedMessages)
       } else {
-        // 메시지가 없으면 기본 환영 메시지와 분석 완료 메시지 추가
+        // 히스토리가 없으면 기본 환영 메시지 추가
         const welcomeMessage: Message = {
           id: Date.now().toString(),
           role: "assistant",
-          content: "채팅 내용은 저장되지 않습니다. 새로운 질문을 시작해주세요!",
+          content: "안녕하세요! 의료 문서 해석 AI입니다. 📋\n\n업로드하신 문서나 건강 정보에 대해 궁금한 점을 질문해주세요. 이해하기 쉬운 정보로 설명드리겠습니다.\n\n⚠️ 본 서비스는 교육 및 정보 제공 목적이며, 응급상황 시에는 즉시 119에 신고하거나 가까운 응급실을 방문하세요.",
           timestamp: new Date()
         }
         setMessages([welcomeMessage])
