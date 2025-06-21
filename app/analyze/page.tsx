@@ -304,7 +304,6 @@ export default function HomePage() {
 
   // 채팅룸 정보를 불러오는 함수
   const loadChatRoom = async (roomId: string) => {
-    console.log('🏠 채팅룸 로딩 시작:', roomId)
     try {
       const authToken = token || localStorage.getItem('auth_token')
       
@@ -362,10 +361,6 @@ export default function HomePage() {
       setIsChatMode(true)
       setShowAnalysis(true)
       setIsSidebarCollapsed(false)
-      
-      // 분석 결과 표시
-      console.log('📋 채팅룸 데이터:', formattedChatRoom)
-      console.log('📄 분석 결과 텍스트:', formattedChatRoom.result)
       
       setAnalysisData(formattedChatRoom.result || '')
       setAnalysisProgress(100)
@@ -528,37 +523,6 @@ export default function HomePage() {
       setIsMobileResultsOpen(false);
     }
     // 데스크톱에서는 분석 결과 패널 유지 (접지 않음)
-  }
-
-  // 텍스트 메시지를 바로 전송하는 함수
-  const sendTextMessage = async (message: string) => {
-    if (!message.trim() || isStreaming) return
-
-    // 인증 체크
-    const currentToken = token || localStorage.getItem('auth_token')
-    if (!currentToken) {
-      addErrorMessage('채팅을 위해 로그인이 필요합니다.')
-      return
-    }
-
-    // 사용자 메시지 추가
-    addMessage('user', message)
-    setInputMessage("")
-
-    // 스트리밍 상태 설정
-    setIsStreaming(true)
-    setIsTyping(true)
-
-    try {
-      // AI 응답 처리
-      await streamMessage(message)
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : "알 수 없는 오류가 발생했습니다."
-      addMessage("assistant", `⚠️ 오류: ${errorMsg}`)
-    } finally {
-      setIsStreaming(false)
-      setIsTyping(false)
-    }
   }
 
   // 메시지 전송
