@@ -19,6 +19,7 @@ interface ImageUploadSectionProps {
   onRoomIdReceived?: (roomId: string) => void
   selectedModel?: string
   onModelChange?: (model: string) => void
+  isNewUser?: boolean
 }
 
 interface SupportedFormat {
@@ -36,7 +37,8 @@ export default function ImageUploadSection({
   onStatusUpdate,
   onRoomIdReceived,
   selectedModel = "gpt-4o-mini",
-  onModelChange
+  onModelChange,
+  isNewUser = false
 }: ImageUploadSectionProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -153,8 +155,8 @@ export default function ImageUploadSection({
       return
     }
 
-    // 채팅방 개수 제한 확인 (제한 우회 상태가 아닐 때만)
-    if (!limitBypass) {
+    // 채팅방 개수 제한 확인 (제한 우회 상태가 아니고 신규 사용자가 아닐 때만)
+    if (!limitBypass && !isNewUser) {
       try {
         const limitResponse = await apiRequest('/api/medical/check-analysis-limit', {
           method: 'GET',
@@ -411,7 +413,13 @@ export default function ImageUploadSection({
   // 모델 변경 핸들러
   const handleModelChange = async (newModel: string) => {
     if (newModel !== "gpt-4o-mini") {
-      // 다른 모델 선택 시 광고 로딩 및 시청 확인
+      // 신규 사용자(가입 후 3일 이내)는 프리미엄 모델 무료 사용
+      if (isNewUser) {
+        onModelChange?.(newModel)
+        return
+      }
+      
+      // 기존 사용자는 광고 로딩 및 시청 확인
       setPendingModel(newModel)
       setIsLoadingAd(true)
       
@@ -489,15 +497,29 @@ export default function ImageUploadSection({
                   <SelectContent>
                     <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
                     <SelectItem value="gpt-4o">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-between w-full">
                         <span>gpt-4o</span>
-                        <Crown className="w-3 h-3 text-amber-500" />
+                        <div className="flex items-center space-x-1">
+                          {isNewUser && (
+                            <span className="text-xs bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">
+                              FREE
+                            </span>
+                          )}
+                          <Crown className="w-3 h-3 text-amber-500" />
+                        </div>
                       </div>
                     </SelectItem>
                     <SelectItem value="gpt-4.1">
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-between w-full">
                         <span>gpt-4.1</span>
-                        <Crown className="w-3 h-3 text-amber-500" />
+                        <div className="flex items-center space-x-1">
+                          {isNewUser && (
+                            <span className="text-xs bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">
+                              FREE
+                            </span>
+                          )}
+                          <Crown className="w-3 h-3 text-amber-500" />
+                        </div>
                       </div>
                     </SelectItem>
                   </SelectContent>
