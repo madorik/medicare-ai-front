@@ -587,6 +587,10 @@ export default function HomePage() {
         throw new Error('인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.')
       }
       
+      // URL에서 현재 roomId 가져오기
+      const urlParams = new URLSearchParams(window.location.search)
+      const currentRoomId = urlParams.get('roomId') || null
+      
       // 채팅 히스토리를 OpenAI 형식으로 변환
       const chatHistory = messages.slice(-10).map(msg => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
@@ -602,7 +606,8 @@ export default function HomePage() {
         body: JSON.stringify({
           message: message,
           chatHistory: chatHistory,
-          model: selectedModel
+          model: selectedModel,
+          roomId: currentRoomId
         })
       })
 

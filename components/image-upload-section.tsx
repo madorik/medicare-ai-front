@@ -41,6 +41,13 @@ export default function ImageUploadSection({
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [limitReached, setLimitReached] = useState<{
+    isReached: boolean
+    message: string
+    currentCount: number
+    limit: number
+  } | null>(null)
+  const [limitBypass, setLimitBypass] = useState(false)
   const [supportedFormats, setSupportedFormats] = useState<SupportedFormat[]>([])
   const [showAdModal, setShowAdModal] = useState(false)
   const [pendingModel, setPendingModel] = useState<string>("")
@@ -144,6 +151,41 @@ export default function ImageUploadSection({
     
     if (!validateFile(file)) {
       return
+    }
+
+    // 채팅방 개수 제한 확인 (제한 우회 상태가 아닐 때만)
+    if (!limitBypass) {
+      try {
+        const limitResponse = await apiRequest('/api/medical/check-analysis-limit', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+
+        if (!limitResponse.ok) {
+          throw new Error('채팅방 개수 제한 확인 실패')
+        }
+
+        const limitData = await limitResponse.json()
+        
+        if (!limitData.success || !limitData.data.canCreateAnalysis) {
+          // 채팅방 생성 불가능한 경우 - 프리미엄 유도 UI 표시
+          setLimitReached({
+            isReached: true,
+            message: limitData.data.message || '채팅방 생성 제한에 도달했습니다.',
+            currentCount: limitData.data.currentCount || 0,
+            limit: limitData.data.limit || 3
+          })
+          return
+        }
+      } catch (error) {
+        // 제한 확인 API 실패 시에도 에러 처리
+        const errorMessage = error instanceof Error ? error.message : '채팅방 개수 제한 확인 중 오류가 발생했습니다.'
+        setError(errorMessage)
+        onError(errorMessage)
+        return
+      }
     }
 
     setIsUploading(true)
@@ -345,6 +387,8 @@ export default function ImageUploadSection({
   const resetUpload = () => {
     setUploadedFile(null)
     setError(null)
+    setLimitReached(null)
+    setLimitBypass(false)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -465,7 +509,8 @@ export default function ImageUploadSection({
           <div 
               className={`
                 relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300
-                ${error ? 'border-red-300 bg-red-50' : 
+                ${limitReached ? 'border-amber-300 bg-amber-50' :
+                  error ? 'border-red-300 bg-red-50' : 
                   isUploading ? 'border-emerald-300 bg-emerald-50' :
                   uploadedFile ? 'border-green-300 bg-green-50' :
                   'border-gray-300 bg-gray-50 hover:border-emerald-400 hover:bg-emerald-50/50'
@@ -474,7 +519,47 @@ export default function ImageUploadSection({
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
-                          {error ? (
+                                                     {limitReached ? (
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <Crown className="w-6 h-6 text-amber-600" />
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-base font-semibold text-amber-700 mb-1">
+                      채팅방 생성 제한 도달
+                    </h3>
+                    <p className="text-sm text-amber-600 mb-2">
+                      무료 사용자는 최대 {limitReached.limit}개의 채팅방만 생성할 수 있습니다.
+                    </p>
+                    <p className="text-xs text-amber-500 mb-3">
+                      현재 {limitReached.currentCount}개 사용 중
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <p className="text-sm text-blue-700 font-medium">
+                        💡 30초 광고 시청으로 추가 분석 가능!
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                                         <Button
+                       onClick={() => {
+                         setLimitReached(null)
+                         setLimitBypass(true)
+                       }}
+                       className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-4 py-2"
+                     >
+                       OK - 분석 계속하기
+                     </Button>
+                    <Button
+                      variant="outline"
+                      onClick={resetUpload}
+                      className="border-amber-300 text-amber-600 hover:bg-amber-50"
+                    >
+                      취소
+                    </Button>
+                  </div>
+                </div>
+              ) : error ? (
                 <div className="flex flex-col items-center space-y-4">
                   <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
                     <AlertCircle className="w-6 h-6 text-red-600" />
