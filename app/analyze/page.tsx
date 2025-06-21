@@ -453,7 +453,7 @@ export default function HomePage() {
       // 오류 발생 시 기본 메시지 표시
       addMessage(
         "assistant",
-        "안녕하세요! 문서 해석이 완료되었습니다. 해석 결과에 대해 궁금한 점이 있으시면 질문해주세요.\n\n※ 본 정보는 교육 목적이며, 정확한 진단은 의료진과 상담하시기 바랍니다."
+        "안녕하세요! 문서 해석이 완료되었습니다. \n\n※ 본 정보는 교육 목적이며, 정확한 진단은 의료진과 상담하시기 바랍니다."
       )
     }
   }
@@ -910,6 +910,322 @@ export default function HomePage() {
     setPendingHeaderModel("")
     setIsWatchingHeaderAd(false)
     setHeaderAdWatchTime(0)
+  }
+
+  // 인라인 마크다운 처리 함수 (굵은 글씨, 기울임, 인라인 코드 등)
+  const processInlineMarkdown = (text: string): React.ReactNode => {
+    if (!text) return text
+    
+    // **굵은 글씨** 처리
+    let processed = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    
+    // *기울임* 처리 (굵은 글씨와 겹치지 않도록)
+    processed = processed.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
+    
+    // `인라인 코드` 처리
+    processed = processed.replace(/`([^`]+)`/g, '<code class="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">$1</code>')
+    
+    // 링크 처리 [텍스트](URL)
+    processed = processed.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
+    
+    // 이미지 처리 ![alt](URL)
+    processed = processed.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg shadow-sm" />')
+    
+    // HTML을 JSX로 변환
+    return <span dangerouslySetInnerHTML={{ __html: processed }} />
+  }
+
+  // 마크다운을 HTML로 변환하는 함수
+  const renderMarkdown = (text: string) => {
+    if (!text) return null
+    
+    // 줄 단위로 처리
+    const lines = text.split('\n')
+    const elements: JSX.Element[] = []
+    let i = 0
+    
+    while (i < lines.length) {
+      const line = lines[i].trim()
+      
+      // 빈 줄 처리
+      if (line === '') {
+        elements.push(<br key={`br-${i}`} />)
+        i++
+        continue
+      }
+      
+      // 헤더 처리 (# ## ### ####)
+      if (line.startsWith('#')) {
+        const level = line.match(/^#+/)?.[0].length || 1
+        const headerText = line.replace(/^#+\s*/, '')
+        const HeaderTag = `h${Math.min(level, 6)}` as keyof JSX.IntrinsicElements
+        
+        elements.push(
+          <HeaderTag 
+            key={`header-${i}`} 
+            className={`font-bold mt-4 mb-2 ${
+              level === 1 ? 'text-lg text-gray-900' :
+              level === 2 ? 'text-base text-gray-800' :
+              level === 3 ? 'text-sm text-gray-800' :
+              'text-xs text-gray-700'
+            }`}
+          >
+            {processInlineMarkdown(headerText)}
+          </HeaderTag>
+        )
+        i++
+        continue
+      }
+      
+      // 중첩된 리스트 처리 (- * +)
+      if (/^(\s*)[-*+]\s/.test(line)) {
+        const renderNestedList = (startIndex: number): { elements: JSX.Element, nextIndex: number } => {
+          const listItems: JSX.Element[] = []
+          let j = startIndex
+          const baseIndent = lines[startIndex].match(/^(\s*)[-*+]\s/)?.[1].length || 0
+          
+          while (j < lines.length) {
+            const currentLine = lines[j]
+            const trimmedLine = currentLine.trim()
+            
+            // 빈 줄은 건너뛰기
+            if (!trimmedLine) {
+              j++
+              continue
+            }
+            
+            // 리스트 아이템이 아니면 종료
+            if (!/^(\s*)[-*+]\s/.test(currentLine)) {
+              break
+            }
+            
+            const indentMatch = currentLine.match(/^(\s*)[-*+]\s(.*)/)
+            if (!indentMatch) {
+              j++
+              continue
+            }
+            
+            const [, indent, itemText] = indentMatch
+            const currentIndent = indent.length
+            
+            // 현재 레벨보다 깊은 들여쓰기면 종료 (하위 리스트로 처리됨)
+            if (currentIndent > baseIndent) {
+              break
+            }
+            
+            // 현재 레벨보다 얕은 들여쓰기면 종료 (상위 레벨로 돌아감)
+            if (currentIndent < baseIndent) {
+              break
+            }
+            
+            // 체크박스 리스트 처리
+            if (itemText.startsWith('[ ]') || itemText.startsWith('[x]') || itemText.startsWith('[X]')) {
+              const isChecked = itemText.startsWith('[x]') || itemText.startsWith('[X]')
+              const checkboxText = itemText.replace(/^\[[ xX]\]\s/, '')
+              
+              listItems.push(
+                <li key={`li-${j}`} className="mb-1 flex items-start">
+                  <input 
+                    type="checkbox" 
+                    checked={isChecked} 
+                    readOnly
+                    className="mr-2 mt-1" 
+                  />
+                  <span>{processInlineMarkdown(checkboxText)}</span>
+                </li>
+              )
+            } else {
+              // 다음 줄이 더 깊은 들여쓰기인지 확인 (중첩된 리스트)
+              let hasNestedList = false
+              let nestedListElement: JSX.Element | null = null
+              
+              if (j + 1 < lines.length) {
+                const nextLine = lines[j + 1]
+                const nextIndentMatch = nextLine.match(/^(\s*)[-*+]\s/)
+                if (nextIndentMatch && nextIndentMatch[1].length > currentIndent) {
+                  hasNestedList = true
+                  const nested = renderNestedList(j + 1)
+                  nestedListElement = nested.elements
+                  j = nested.nextIndex - 1 // -1 because j will be incremented
+                }
+              }
+              
+              listItems.push(
+                <li key={`li-${j}`} className="mb-1">
+                  <span>{processInlineMarkdown(itemText)}</span>
+                  {nestedListElement}
+                </li>
+              )
+            }
+            
+            j++
+          }
+          
+          const marginLeft = baseIndent > 0 ? `${baseIndent / 2}rem` : '0.5rem'
+          
+          return {
+            elements: (
+              <ul 
+                key={`ul-${startIndex}`} 
+                className="list-disc mb-2"
+                style={{ marginLeft }}
+              >
+                {listItems}
+              </ul>
+            ),
+            nextIndex: j
+          }
+        }
+        
+        const result = renderNestedList(i)
+        elements.push(result.elements)
+        i = result.nextIndex
+        continue
+      }
+      
+      // 숫자 리스트 처리 (1. 2. 3.) - 기호로 대체
+      if (/^\d+\.\s/.test(line)) {
+        const listItems: JSX.Element[] = []
+        let j = i
+        let listNumber = 0
+        
+        // 다양한 기호들
+        const symbols = ['●', '▸', '▶', '◆', '▪', '◾']
+        
+        while (j < lines.length && /^\d+\.\s/.test(lines[j].trim())) {
+          const itemText = lines[j].trim().replace(/^\d+\.\s/, '')
+          const symbol = symbols[listNumber % symbols.length]
+          
+          listItems.push(
+            <li key={`oli-${j}`} className="ml-2 mb-1 flex items-start">
+              <span className="text-emerald-600 mr-2 flex-shrink-0">{symbol}</span>
+              <span className="flex-1">{processInlineMarkdown(itemText)}</span>
+            </li>
+          )
+          listNumber++
+          j++
+        }
+        
+        elements.push(
+          <ul key={`ul-${i}`} className="mb-2" style={{ listStyle: 'none' }}>
+            {listItems}
+          </ul>
+        )
+        i = j
+        continue
+      }
+      
+      // 인용문 처리 (>)
+      if (line.startsWith('>')) {
+        const quoteText = line.replace(/^>\s*/, '')
+        elements.push(
+          <blockquote 
+            key={`quote-${i}`} 
+            className="border-l-2 border-blue-400 pl-2 py-1 bg-blue-50 mb-2 italic text-gray-700 text-xs"
+          >
+            {processInlineMarkdown(quoteText)}
+          </blockquote>
+        )
+        i++
+        continue
+      }
+      
+      // 구분선 처리 (---)
+      if (/^---+$/.test(line) || /^\*\*\*+$/.test(line)) {
+        elements.push(
+          <hr key={`hr-${i}`} className="border-t border-gray-300 my-3" />
+        )
+        i++
+        continue
+      }
+      
+      // 테이블 처리
+      if (line.includes('|') && lines[i + 1]?.includes('|')) {
+        const tableRows: JSX.Element[] = []
+        let j = i
+        let isHeader = true
+        
+        while (j < lines.length && lines[j].includes('|')) {
+          const row = lines[j].trim()
+          
+          // 구분선 스킵 (|---|---|)
+          if (/^\|[\s\-\|:]+\|$/.test(row)) {
+            j++
+            continue
+          }
+          
+          const cells = row.split('|').map(cell => cell.trim()).filter(cell => cell)
+          
+          if (isHeader) {
+            tableRows.push(
+              <tr key={`tr-${j}`}>
+                {cells.map((cell, cellIndex) => (
+                  <th key={`th-${j}-${cellIndex}`} className="border border-gray-300 px-2 py-1 bg-gray-100 font-semibold text-left text-xs">
+                    {processInlineMarkdown(cell)}
+                  </th>
+                ))}
+              </tr>
+            )
+            isHeader = false
+          } else {
+            tableRows.push(
+              <tr key={`tr-${j}`}>
+                {cells.map((cell, cellIndex) => (
+                  <td key={`td-${j}-${cellIndex}`} className="border border-gray-300 px-2 py-1 text-xs">
+                    {processInlineMarkdown(cell)}
+                  </td>
+                ))}
+              </tr>
+            )
+          }
+          j++
+        }
+        
+        if (tableRows.length > 0) {
+          elements.push(
+            <table key={`table-${i}`} className="w-full border-collapse border border-gray-300 mb-2 text-xs">
+              <tbody>{tableRows}</tbody>
+            </table>
+          )
+        }
+        i = j
+        continue
+      }
+      
+      // 코드 블록 처리 (```)
+      if (line.startsWith('```')) {
+        const codeLines: string[] = []
+        i++ // 시작 ``` 다음 줄부터
+        
+        while (i < lines.length && !lines[i].trim().startsWith('```')) {
+          codeLines.push(lines[i])
+          i++
+        }
+        
+        elements.push(
+          <pre 
+            key={`code-${i}`} 
+            className="bg-gray-100 p-2 rounded mb-2 overflow-x-auto"
+          >
+            <code className="text-xs font-mono text-gray-800">
+              {codeLines.join('\n')}
+            </code>
+          </pre>
+        )
+        i++ // 종료 ``` 다음으로
+        continue
+      }
+      
+      // 일반 문단 처리
+      elements.push(
+        <p key={`p-${i}`} className="mb-2 leading-relaxed text-gray-800">
+          {processInlineMarkdown(line)}
+        </p>
+      )
+      i++
+    }
+    
+    return <div className="markdown-content">{elements}</div>
   }
 
   // 프로필 드롭다운 토글 함수 (메모화)
@@ -1491,7 +1807,13 @@ export default function HomePage() {
                             message.role === "user" ? "bg-emerald-100 text-emerald-900" : "bg-gray-100 text-gray-900"
                           }`}
                         >
-                          <p className="text-xs md:text-sm whitespace-pre-wrap">{message.content}</p>
+                          <div className="text-xs md:text-sm">
+                            {message.role === "user" ? (
+                              <div className="whitespace-pre-wrap">{message.content}</div>
+                            ) : (
+                              renderMarkdown(message.content)
+                            )}
+                          </div>
                           <div className="text-xs mt-1 text-gray-500">
                             {new Intl.DateTimeFormat("ko-KR", {
                               hour: "2-digit",
