@@ -1051,9 +1051,7 @@ export default function HomePage() {
             ) : (
               <>
                 <div className="text-xs md:text-sm text-gray-400">
-                  <p>의료 문서 해석 AI 서비스입니다.</p>
-                  <p className="text-xs text-gray-500 mt-1">※ 참고용 정보 제공</p>
-                  <p>처방전, 검사 결과지, 진단서 등을 업로드하여 AI 해석을 받아보세요.</p>
+                  <p className="text-xs text-gray-500 mt-1">※ 채팅 내용은 저장되지 않습니다.</p>
                 </div>
               </>
             )}
