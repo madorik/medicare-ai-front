@@ -218,13 +218,8 @@ export default function HomePage() {
     
     // 로그인한 사용자에게만 이벤트 모달 표시 (쿠키로 중복 방지)
     const hasSeenEventModal = getCookie('hasSeenEventModal')
-    console.log('🍪 이벤트 모달 쿠키 확인:', hasSeenEventModal)
-    
     if (!hasSeenEventModal) {
-      console.log('✅ 로그인 사용자에게 이벤트 모달 표시!')
       setShowEventModal(true)
-    } else {
-      console.log('⏭️ 이미 본 이벤트 모달 (쿠키 존재)')
     }
   }
 
@@ -2117,7 +2112,7 @@ export default function HomePage() {
                 </h3>
                 <p className="text-gray-600 mb-4">
                   {isNewUser ? (
-                    <>가입 후 <span className="font-bold text-emerald-600">3일간</span> 모든 프리미엄 기능을 무제한으로 사용하세요!</>
+                    <>가입 후 <span className="font-bold text-emerald-600">3일간</span> 모든 프리미엄 기능을 광고없이 무제한으로 사용하세요!</>
                   ) : (
                     <>현재 진행중인 <span className="font-bold text-emerald-600">특별 이벤트</span>를 확인해보세요!</>
                   )}
