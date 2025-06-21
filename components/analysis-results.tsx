@@ -474,11 +474,11 @@ export default function AnalysisResults({
         <CardContent>
           <div className="space-y-4">
             <p className="text-gray-600">
-              문서 해석 중 오류가 발생했습니다: {errorMessage}
+              해석할 수 없는 문서입니다.
             </p>
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
               <p className="text-sm text-yellow-800">
-                ※ 정확한 의료 정보는 의료진과 상담하시기 바랍니다.
+                ※ 의료 문서가 아니거나 문서 형식이 올바르지 않습니다.
               </p>
             </div>
           </div>

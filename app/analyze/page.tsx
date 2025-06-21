@@ -1035,8 +1035,7 @@ export default function HomePage() {
                   <span>새로운 분석</span>
                 </Button>
                 <div className="text-xs md:text-sm text-gray-400 mt-4">
-                  <p>AI와 직접 건강 정보 상담을 하고 있습니다. 궁금한 내용을 물어보세요.</p>
-                  <p className="text-xs text-gray-500 mt-1">※ 교육 및 정보 제공 목적</p>
+                  <p className="text-xs text-gray-500 mt-1">※ 채팅 내용은 저장되지 않습니다.</p>
                 </div>
               </>
             ) : showAnalysis ? (
