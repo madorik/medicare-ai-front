@@ -47,6 +47,18 @@ export default function AnalysisResults({
   const streamingRef = useRef<HTMLDivElement>(null)
   const [lastRenderedLength, setLastRenderedLength] = useState(0)
   
+  // 디버깅: 분석 데이터 확인
+  useEffect(() => {
+    console.log('🎯 AnalysisResults에서 받은 데이터:', {
+      isAnalyzing,
+      analysisDataLength: analysisData?.length || 0,
+      analysisDataPreview: analysisData?.substring(0, 100) + '...',
+      hasError,
+      errorMessage,
+      progress
+    })
+  }, [analysisData, isAnalyzing, hasError, errorMessage, progress])
+  
   // 복사 기능 관련 상태
   const [isCopied, setIsCopied] = useState(false)
 

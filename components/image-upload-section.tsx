@@ -16,6 +16,7 @@ interface ImageUploadSectionProps {
   onAnalysisComplete: () => void
   onError: (error: string) => void
   onStatusUpdate?: (status: string, type?: 'info' | 'warning' | 'error' | 'success') => void
+  onRoomIdReceived?: (roomId: string) => void
   selectedModel?: string
   onModelChange?: (model: string) => void
 }
@@ -33,6 +34,7 @@ export default function ImageUploadSection({
   onAnalysisComplete, 
   onError, 
   onStatusUpdate,
+  onRoomIdReceived,
   selectedModel = "gpt-4o-mini",
   onModelChange
 }: ImageUploadSectionProps) {
@@ -221,6 +223,10 @@ export default function ImageUploadSection({
                     
                   case 'status':
                     onStatusUpdate?.(data.message, 'info')
+                    // roomId가 있으면 URL 업데이트
+                    if (data.roomId && onRoomIdReceived) {
+                      onRoomIdReceived(data.roomId)
+                    }
                     break
                     
                   case 'chunk':

@@ -75,7 +75,7 @@ export default function HomePage() {
   const [isResizing, setIsResizing] = useState(false)
   const [inputMessage, setInputMessage] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isResultPanelCollapsed, setIsResultPanelCollapsed] = useState(false)
   const chatContainerRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -117,10 +117,11 @@ export default function HomePage() {
     // 디버깅 로그 제거됨
   }, [inputMessage])
 
-  // URL 파라미터 확인해서 채팅 모드 설정
+  // URL 파라미터 확인해서 채팅 모드 설정 및 roomId 처리
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const chatParam = urlParams.get('chat')
+    const roomId = urlParams.get('roomId')
     
     if (chatParam === 'true') {
       setIsChatMode(true)
@@ -133,6 +134,11 @@ export default function HomePage() {
           "안녕하세요! 의료 문서 해석 AI입니다. 📋\n\n업로드하신 문서나 건강 정보에 대해 궁금한 점을 질문해주세요. 이해하기 쉬운 정보로 설명드리겠습니다.\n\n⚠️ 본 서비스는 교육 및 정보 제공 목적이며, 응급상황 시에는 즉시 119에 신고하거나 가까운 응급실을 방문하세요."
         )
       }
+    }
+    
+    // roomId가 있으면 해당 채팅룸 정보 불러오기
+    if (roomId) {
+      loadChatRoom(roomId)
     }
   }, [])
 
@@ -166,6 +172,124 @@ export default function HomePage() {
   const handleAnalysisResult = (data: string, tokenCount?: number, progress?: number) => {
     setAnalysisData(data)
     if (progress !== undefined) setAnalysisProgress(progress)
+  }
+
+  // URL에 roomId를 추가하는 함수
+  const updateUrlWithRoomId = (roomId: string) => {
+    const currentUrl = new URL(window.location.href)
+    currentUrl.searchParams.set('roomId', roomId)
+    window.history.replaceState(null, '', currentUrl.toString())
+  }
+
+  // 채팅룸 정보를 불러오는 함수
+  const loadChatRoom = async (roomId: string) => {
+    console.log('🏠 채팅룸 로딩 시작:', roomId)
+    try {
+      const authToken = token || localStorage.getItem('auth_token')
+      
+      if (!authToken) {
+        throw new Error('인증 토큰을 찾을 수 없습니다. 다시 로그인해주세요.')
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/medical/chat-rooms/${roomId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('인증이 필요합니다. 다시 로그인해주세요.')
+        } else if (response.status === 404) {
+          throw new Error('해당 채팅룸을 찾을 수 없습니다.')
+        }
+        throw new Error(`채팅룸 정보를 불러오는데 실패했습니다: ${response.status}`)
+      }
+
+      const apiResponse = await response.json()
+      
+      // API 응답 구조 확인 및 데이터 추출
+      const chatRoom = apiResponse.success ? apiResponse.data : apiResponse
+      
+      // 결과 포맷팅
+      const CATEGORY_NAMES_KR: { [key: string]: string } = {
+        'prescription': '처방전',
+        'test_result': '검사 결과',
+        'diagnosis': '진단서',
+        'medical_record': '진료기록',
+        'health_checkup': '건강검진',
+        'other': '기타'
+      }
+
+      const formattedChatRoom = {
+        id: chatRoom.medical_analysis.id,
+        model: chatRoom.medical_analysis.model,
+        summary: chatRoom.medical_analysis.summary,
+        result: chatRoom.medical_analysis.result,
+        document_type: chatRoom.medical_analysis.document_type || 'other',
+        document_type_name: chatRoom.medical_analysis.document_type_name || CATEGORY_NAMES_KR[chatRoom.medical_analysis.document_type] || '기타',
+        created_at: chatRoom.medical_analysis.created_at
+      }
+
+      // 채팅 모드 활성화
+      setIsChatMode(true)
+      setShowAnalysis(true)
+      setIsSidebarCollapsed(false)
+      
+      // 분석 결과 표시
+      console.log('📋 채팅룸 데이터:', formattedChatRoom)
+      console.log('📄 분석 결과 텍스트:', formattedChatRoom.result)
+      
+      setAnalysisData(formattedChatRoom.result || '')
+      setAnalysisProgress(100)
+      setStatusMessage('저장된 분석 결과를 불러왔습니다.')
+      
+      // 채팅 메시지 불러오기 (API 응답에 메시지가 있는 경우)
+      if (chatRoom.messages && Array.isArray(chatRoom.messages)) {
+        const formattedMessages: Message[] = chatRoom.messages.map((msg: any) => ({
+          id: msg.id || Date.now().toString() + Math.random(),
+          role: msg.role || (msg.sender === 'user' ? 'user' : 'assistant'),
+          content: msg.content || msg.message || '',
+          timestamp: new Date(msg.created_at || msg.timestamp || Date.now())
+        }))
+        setMessages(formattedMessages)
+      } else {
+        // 메시지가 없으면 기본 환영 메시지와 분석 완료 메시지 추가
+        const welcomeMessage: Message = {
+          id: Date.now().toString(),
+          role: "assistant",
+          content: "채팅 내용은 저장되지 않습니다. 새로운 질문을 시작해주세요!",
+          timestamp: new Date()
+        }
+        setMessages([welcomeMessage])
+      }
+      
+      // 모바일에서는 결과 모달 열기
+      if (window.innerWidth < 768) {
+        setIsMobileResultsOpen(true)
+      } else {
+        setIsResultPanelCollapsed(false)
+      }
+
+      // 성공 메시지 표시
+      addToast('채팅룸과 분석 결과를 성공적으로 불러왔습니다.', 'success')
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '채팅룸 정보를 불러오는데 실패했습니다.'
+      
+      // 인증 오류인 경우 로그인 페이지로 리다이렉트
+      if (errorMessage.includes('인증') || errorMessage.includes('로그인')) {
+        addToast(errorMessage, 'error')
+        setTimeout(() => {
+          router.push('/login')
+        }, 2000)
+      } else {
+        addToast(errorMessage, 'error')
+        setAnalysisError(errorMessage)
+      }
+    }
   }
 
   // 분석 완료 핸들러
@@ -585,6 +709,17 @@ export default function HomePage() {
     }
   }, [messages])
 
+  // 채팅 모드가 활성화되고 메시지가 있을 때 채팅 영역으로 스크롤
+  useEffect(() => {
+    if (isChatMode && messages.length > 0 && chatContainerRef.current) {
+      setTimeout(() => {
+        if (chatContainerRef.current) {
+          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
+        }
+      }, 100)
+    }
+  }, [isChatMode, messages.length])
+
   // 엔터 키로 메시지 전송
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -665,7 +800,16 @@ export default function HomePage() {
             
             {/* Modal Content */}
             <div className="flex-1 overflow-y-auto p-4">
-              {isChatMode ? (
+              {analysisData ? (
+                <AnalysisResults
+                  isAnalyzing={isAnalyzing}
+                  analysisData={analysisData}
+                  hasError={!!analysisError}
+                  errorMessage={analysisError || undefined}
+                  progress={analysisProgress}
+                  onTextDragToChat={handleTextDragToChat}
+                />
+              ) : isChatMode ? (
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900">💬 채팅 도움말</h3>
                   
@@ -1086,15 +1230,16 @@ export default function HomePage() {
                   {/* Upload Section */}
                   <div className="mb-6">
                     <div className="max-w-4xl mx-auto">
-                      <ImageUploadSection
-                        onAnalysisStart={handleAnalysisStart}
-                        onAnalysisResult={handleAnalysisResult}
-                        onAnalysisComplete={handleAnalysisComplete}
-                        onError={handleAnalysisError}
-                        onStatusUpdate={handleStatusUpdate}
-                        selectedModel={selectedModel}
-                        onModelChange={setSelectedModel}
-                      />
+                                  <ImageUploadSection 
+              onAnalysisStart={handleAnalysisStart}
+              onAnalysisResult={handleAnalysisResult}
+              onAnalysisComplete={handleAnalysisComplete}
+              onError={handleAnalysisError}
+              onStatusUpdate={handleStatusUpdate}
+              onRoomIdReceived={updateUrlWithRoomId}
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+            />
                     </div>
                   </div>
                 </div>
@@ -1277,7 +1422,16 @@ export default function HomePage() {
                   {/* Results Content */}
                   {!isResultPanelCollapsed && (
                     <div className="flex-1 p-4 overflow-y-auto">
-                      {isChatMode ? (
+                      {analysisData ? (
+                        <AnalysisResults
+                          isAnalyzing={isAnalyzing}
+                          analysisData={analysisData}
+                          hasError={!!analysisError}
+                          errorMessage={analysisError || undefined}
+                          progress={analysisProgress}
+                          onTextDragToChat={handleTextDragToChat}
+                        />
+                      ) : isChatMode ? (
                         <div className="space-y-4">
                           <h3 className="text-lg font-semibold text-gray-900">💬 채팅 도움말</h3>
                           
