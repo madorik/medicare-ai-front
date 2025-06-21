@@ -514,11 +514,6 @@ export default function InfoPage() {
               <p className="text-gray-400 text-sm mb-4 md:mb-0">
                 &copy; 2025 또닥 AI. All rights reserved.
               </p>
-              <div className="flex items-center space-x-6 text-sm text-gray-400">
-                <span>Made with ❤️ in Korea</span>
-                <span>•</span>
-                <span>AI Powered Healthcare</span>
-              </div>
             </div>
           </div>
         </div>
