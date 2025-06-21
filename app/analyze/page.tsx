@@ -102,6 +102,11 @@ export default function HomePage() {
   // 토스트 메시지 상태
   const [toasts, setToasts] = useState<ToastMessage[]>([])
 
+  // 채팅방 목록 상태
+  const [chatRooms, setChatRooms] = useState<any[]>([])
+  const [isLoadingChatRooms, setIsLoadingChatRooms] = useState(false)
+  const [loadingRoomId, setLoadingRoomId] = useState<string | null>(null)
+
   // 프로필 드롭다운 상태
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
   const profileDropdownRef = useRef<HTMLDivElement>(null)
@@ -142,14 +147,66 @@ export default function HomePage() {
     }
   }, [])
 
-  // 메인 페이지로 이동하는 함수
+  // 인증 상태 변경 시 채팅방 목록 로딩
+  useEffect(() => {
+    if (user && token && !isLoading) {
+      loadChatRooms()
+    }
+  }, [user, token, isLoading])
+
+  // 새로운 분석 페이지로 이동하는 함수
   const navigateToHome = () => {
     setIsChatMode(false)
     setShowAnalysis(false)
     setMessages([])
+    setAnalysisData("")
+    setAnalysisError(null)
+    setAnalysisProgress(0)
     setIsSidebarCollapsed(true)
     setIsMobileSidebarOpen(false)
-    router.push('/')
+    setIsMobileResultsOpen(false)
+    // analyze 페이지의 깨끗한 상태로 이동 (파라미터 제거)
+    router.push('/analyze')
+  }
+
+  // 채팅방 클릭 시 해당 채팅방으로 이동하고 분석 결과 로드
+  const navigateToChatRoom = async (roomId: string) => {
+    try {
+      setLoadingRoomId(roomId)
+      
+      // URL 업데이트
+      const newUrl = `/analyze?roomId=${roomId}`
+      window.history.pushState({}, '', newUrl)
+      
+      // 직접 채팅룸 데이터 로드
+      await loadChatRoom(roomId)
+    } catch (error) {
+      console.error('채팅룸 로드 실패:', error)
+      // 토스트 메시지 제거 - 에러는 분석 결과 영역에 표시됨
+    } finally {
+      setLoadingRoomId(null)
+    }
+  }
+
+  // 날짜 포맷팅 함수
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    
+    if (diffInHours < 1) {
+      return '방금 전'
+    } else if (diffInHours < 24) {
+      return `${diffInHours}시간 전`
+    } else if (diffInHours < 24 * 7) {
+      const diffInDays = Math.floor(diffInHours / 24)
+      return `${diffInDays}일 전`
+    } else {
+      return date.toLocaleDateString('ko-KR', {
+        month: 'short',
+        day: 'numeric'
+      })
+    }
   }
 
   // 분석 시작 핸들러
@@ -179,6 +236,46 @@ export default function HomePage() {
     const currentUrl = new URL(window.location.href)
     currentUrl.searchParams.set('roomId', roomId)
     window.history.replaceState(null, '', currentUrl.toString())
+  }
+
+  // 채팅방 목록을 불러오는 함수
+  const loadChatRooms = async () => {
+    try {
+      setIsLoadingChatRooms(true)
+      const authToken = token || localStorage.getItem('auth_token')
+      
+      if (!authToken) {
+        console.log('🔒 인증 토큰 없음 - 채팅방 목록 로딩 건너뜀')
+        return
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/medical/chat-rooms`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          console.log('🔒 인증 실패 - 채팅방 목록 로딩 실패')
+          return
+        }
+        throw new Error(`채팅방 목록을 불러오는데 실패했습니다: ${response.status}`)
+      }
+
+      const apiResponse = await response.json()
+      const chatRoomsList = apiResponse.success ? apiResponse.data : []
+      
+      console.log('📂 채팅방 목록 로딩 완료:', chatRoomsList.length, '개')
+      setChatRooms(chatRoomsList)
+
+    } catch (error) {
+      console.error('❌ 채팅방 목록 로딩 오류:', error)
+    } finally {
+      setIsLoadingChatRooms(false)
+    }
   }
 
   // 채팅룸 정보를 불러오는 함수
@@ -233,6 +330,10 @@ export default function HomePage() {
         created_at: chatRoom.medical_analysis.created_at
       }
 
+      // 상태 초기화
+      setIsAnalyzing(false)
+      setAnalysisError(null)
+      
       // 채팅 모드 활성화
       setIsChatMode(true)
       setShowAnalysis(true)
@@ -273,20 +374,17 @@ export default function HomePage() {
         setIsResultPanelCollapsed(false)
       }
 
-      // 성공 메시지 표시
-      addToast('채팅룸과 분석 결과를 성공적으로 불러왔습니다.', 'success')
+      // 성공적으로 로드됨 (토스트 메시지 제거)
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '채팅룸 정보를 불러오는데 실패했습니다.'
       
       // 인증 오류인 경우 로그인 페이지로 리다이렉트
       if (errorMessage.includes('인증') || errorMessage.includes('로그인')) {
-        addToast(errorMessage, 'error')
         setTimeout(() => {
           router.push('/login')
         }, 2000)
       } else {
-        addToast(errorMessage, 'error')
         setAnalysisError(errorMessage)
       }
     }
@@ -345,6 +443,8 @@ export default function HomePage() {
     setStatusMessage("")
     setShowAnalysis(false)
     setMessages([])
+    setLoadingRoomId(null)
+    setIsChatMode(false)
   }
 
   // 메시지 추가
@@ -877,7 +977,7 @@ export default function HomePage() {
           maxWidth: isSidebarCollapsed ? "80px" : "320px" // 모바일에서 최대 너비 제한
         }}
       >
-        {/* Sidebar Header */}
+        {/* Sidebar Header - 고정 영역 */}
         <div className="p-4 border-b border-gray-700">
           <div className="flex items-center justify-between">
             {!isSidebarCollapsed && (
@@ -891,7 +991,7 @@ export default function HomePage() {
                 </span>
               </button>
             )}
-{isSidebarCollapsed && (
+            {isSidebarCollapsed && (
               <button
                 onClick={() => router.push('/info')}
                 className="text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer mr-2"
@@ -910,60 +1010,106 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Sidebar Content */}
-        <div className="flex-1 p-4 overflow-y-auto">
-          {!isSidebarCollapsed && (
-            <div className="space-y-4">
-              {isChatMode ? (
-                <>
-                  <Button
-                    onClick={navigateToHome}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center space-x-2 text-sm"
-                  >
-                    <FileText className="w-4 h-4" />
-                    <span>파일 분석</span>
-                  </Button>
-                  <div className="text-xs md:text-sm text-gray-400">
-                    <p>AI와 직접 건강 정보 상담을 하고 있습니다. 궁금한 내용을 물어보세요.</p>
-                    <p className="text-xs text-gray-500 mt-1">※ 교육 및 정보 제공 목적</p>
-                  </div>
-                </>
-              ) : showAnalysis ? (
-                <>
-                  <Button
-                    onClick={resetAnalysis}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-start space-x-2 text-sm"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>새로운 분석</span>
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <div className="text-xs md:text-sm text-gray-400">
-                    <p>의료 문서 해석 AI 서비스입니다.</p>
-                    <p className="text-xs text-gray-500 mt-1">※ 참고용 정보 제공</p>
-                    <p>처방전, 검사 결과지, 진단서 등을 업로드하여 AI 해석을 받아보세요.</p>
-                  </div>
-                  
-                  {/* Contact 버튼 */}
-                  <div className="mt-4">
-                    <ContactModal>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full text-gray-600 hover:text-emerald-600 border-gray-600 hover:border-emerald-600"
+        {/* Sidebar Fixed Content - 고정 영역 */}
+        {!isSidebarCollapsed && (
+          <div className="flex-shrink-0 p-4 border-b border-gray-700">
+            {isChatMode ? (
+              <>
+                <Button
+                  onClick={navigateToHome}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-start space-x-2 text-sm"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>새로운 분석</span>
+                </Button>
+                <div className="text-xs md:text-sm text-gray-400 mt-4">
+                  <p>AI와 직접 건강 정보 상담을 하고 있습니다. 궁금한 내용을 물어보세요.</p>
+                  <p className="text-xs text-gray-500 mt-1">※ 교육 및 정보 제공 목적</p>
+                </div>
+              </>
+            ) : showAnalysis ? (
+              <>
+                <Button
+                  onClick={resetAnalysis}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-start space-x-2 text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>새로운 분석</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="text-xs md:text-sm text-gray-400">
+                  <p>의료 문서 해석 AI 서비스입니다.</p>
+                  <p className="text-xs text-gray-500 mt-1">※ 참고용 정보 제공</p>
+                  <p>처방전, 검사 결과지, 진단서 등을 업로드하여 AI 해석을 받아보세요.</p>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Sidebar Scrollable Content - 스크롤 영역 */}
+        {!isSidebarCollapsed && (
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4">
+              {/* 채팅방 목록 */}
+              {chatRooms.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    {isChatMode ? "이전 채팅" : "이전 분석"}
+                  </h3>
+                  <div className="space-y-2">
+                    {chatRooms.map((room) => (
+                      <button
+                        key={room.id}
+                        onClick={() => navigateToChatRoom(room.id)}
+                        disabled={loadingRoomId === room.id}
+                        className={`w-full text-left p-2 rounded-lg transition-colors group relative ${
+                          loadingRoomId === room.id 
+                            ? 'bg-gray-800 cursor-not-allowed' 
+                            : 'hover:bg-gray-800'
+                        }`}
                       >
-                        <Mail className="w-4 h-4 mr-2" />
-                        개발자에게 문의
-                      </Button>
-                    </ContactModal>
+                        {loadingRoomId === room.id && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 rounded-lg">
+                            <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                          </div>
+                        )}
+                        <div className={`text-sm truncate transition-colors ${
+                          loadingRoomId === room.id 
+                            ? 'text-gray-400' 
+                            : 'text-white group-hover:text-emerald-400'
+                        }`}>
+                          {room.title}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {formatDate(room.updated_at)}
+                        </div>
+                      </button>
+                    ))}
                   </div>
-                </>
+                </div>
+              )}
+              
+              {/* Contact 버튼 - 기본 모드일 때만 표시 */}
+              {!isChatMode && !showAnalysis && (
+                <div className="mt-6">
+                  <ContactModal>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-gray-600 hover:text-emerald-600 border-gray-600 hover:border-emerald-600"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      개발자에게 문의
+                    </Button>
+                  </ContactModal>
+                </div>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Resize Handle - 데스크톱에서만 표시 */}
         <div
@@ -1367,7 +1513,7 @@ export default function HomePage() {
                 <div className="text-xs text-gray-500 mt-2 text-center px-2">
                   <div className="space-y-1">
                     <p className="hidden md:block">
-                      업로드된 문서 파일은 서버에 저장되지 않으며, 처리 완료 후 즉시 삭제됩니다. <br />
+                      채팅 내용은 저장되지 않습니다. 업로드된 문서 파일은 서버에 저장되지 않으며, 처리 완료 후 즉시 삭제됩니다. <br />
                     </p>
                     <p>
                       또닥 AI는 의료 전문가의 진단을 대체할 수 없습니다. 정확한 진단을 위해서는 의료진과 상담하세요.
