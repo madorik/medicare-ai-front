@@ -218,9 +218,9 @@ export default function HomePage() {
     setStatusMessage("분석을 시작합니다...")
     setShowAnalysis(true)
     setIsSidebarCollapsed(false)
-    setIsMobileSidebarOpen(false)
-    // 모바일에서는 분석 시작 시 바로 결과 모달을 열어 진행 상황을 보여줌
+    // 모바일에서는 분석 시작 시 사이드바를 닫고 결과 모달을 바로 열어 진행 상황을 보여줌
     if (window.innerWidth < 768) {
+      setIsMobileSidebarOpen(false) // 사이드바 닫기
       setIsMobileResultsOpen(true)
     }
   }
@@ -367,8 +367,9 @@ export default function HomePage() {
         setMessages([welcomeMessage])
       }
       
-      // 모바일에서는 결과 모달 열기
+      // 모바일에서는 사이드바 닫고 결과 모달 열기
       if (window.innerWidth < 768) {
+        setIsMobileSidebarOpen(false)
         setIsMobileResultsOpen(true)
       } else {
         setIsResultPanelCollapsed(false)
@@ -396,9 +397,20 @@ export default function HomePage() {
     setAnalysisProgress(100)
     setStatusMessage("분석이 완료되었습니다.")
     
+    // 채팅방 목록 갱신 (새로운 분석 결과로 인한 채팅방 생성/업데이트 반영)
+    if (user && token && !isLoading) {
+      try {
+        await loadChatRooms()
+      } catch (error) {
+        console.error('채팅방 목록 갱신 실패:', error)
+        // 갱신 실패해도 분석 완료 프로세스는 계속 진행
+      }
+    }
+    
     // 분석 완료 시 결과 패널/모달 자동 열기
     if (window.innerWidth < 768) {
-      // 모바일: 결과 모달 열기
+      // 모바일: 사이드바 닫고 결과 모달 열기
+      setIsMobileSidebarOpen(false)
       setIsMobileResultsOpen(true)
     } else {
       // 데스크톱: 결과 패널이 접혀있다면 펼치기
@@ -883,8 +895,8 @@ export default function HomePage() {
       
       {/* Mobile Analysis Results Modal */}
       {isMobileResultsOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
-          <div className="h-full bg-white flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] md:hidden">
+          <div className="h-full w-full bg-white flex flex-col shadow-2xl">
             {/* Modal Header */}
             <div className="bg-emerald-600 text-white p-4 flex items-center justify-between">
               <h2 className="text-lg font-semibold">AI 분석 결과</h2>
@@ -1128,7 +1140,13 @@ export default function HomePage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsMobileSidebarOpen(true)}
+                onClick={() => {
+                  setIsMobileSidebarOpen(true)
+                  // 모바일 분석 결과 모달이 열려있다면 닫기
+                  if (isMobileResultsOpen) {
+                    setIsMobileResultsOpen(false)
+                  }
+                }}
                 className="md:hidden p-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1140,7 +1158,7 @@ export default function HomePage() {
               {showAnalysis ? (
                 <div className="flex items-center space-x-3">
                   <Select value={selectedModel} onValueChange={handleHeaderModelChange}>
-                    <SelectTrigger className="w-48">
+                    <SelectTrigger className="w-32 md:w-48">
                       <SelectValue placeholder="모델 선택" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1159,6 +1177,19 @@ export default function HomePage() {
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {/* 모바일 분석 결과 보기 버튼 */}
+                  {(analysisData || isAnalyzing) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsMobileResultsOpen(true)}
+                      className="md:hidden flex items-center space-x-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      <span className="text-xs">결과보기</span>
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <button 
@@ -1403,12 +1434,12 @@ export default function HomePage() {
                       className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`flex items-start space-x-2 max-w-[85%] md:max-w-3xl ${
+                        className={`flex items-start space-x-3 md:space-x-4 max-w-[85%] md:max-w-3xl ${
                           message.role === "user" ? "flex-row-reverse space-x-reverse" : ""
                         }`}
                       >
                         {message.role === "assistant" && (
-                          <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ml-2 md:ml-4">
                             <img 
                               src="/images/bot-profile.png" 
                               alt="AI 어시스턴트"
@@ -1436,8 +1467,8 @@ export default function HomePage() {
                   {/* 타이핑 인디케이터 */}
                   {isTyping && (
                     <div className="flex justify-start">
-                      <div className="flex items-start space-x-2 max-w-[85%] md:max-w-3xl">
-                        <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <div className="flex items-start space-x-3 md:space-x-4 max-w-[85%] md:max-w-3xl">
+                        <div className="w-6 md:w-8 h-6 md:h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ml-2 md:ml-4">
                           <img 
                             src="/images/bot-profile.png" 
                             alt="AI 어시스턴트"
