@@ -1091,23 +1091,23 @@ export default function HomePage() {
                   </div>
                 </div>
               )}
-              
-              {/* Contact 버튼 - 기본 모드일 때만 표시 */}
-              {!isChatMode && !showAnalysis && (
-                <div className="mt-6">
-                  <ContactModal>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-gray-600 hover:text-emerald-600 border-gray-600 hover:border-emerald-600"
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      개발자에게 문의
-                    </Button>
-                  </ContactModal>
-                </div>
-              )}
             </div>
+          </div>
+        )}
+
+        {/* Sidebar Bottom Fixed Content - 하단 고정 영역 */}
+        {!isSidebarCollapsed && !isChatMode && !showAnalysis && (
+          <div className="flex-shrink-0 p-4 border-t border-gray-700">
+            <ContactModal>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-gray-600 hover:text-emerald-600 border-gray-600 hover:border-emerald-600"
+              >
+                <Mail className="w-4 h-4 mr-2" />
+                개발자에게 문의
+              </Button>
+            </ContactModal>
           </div>
         )}
 
