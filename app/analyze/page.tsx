@@ -106,6 +106,7 @@ export default function HomePage() {
   const [chatRooms, setChatRooms] = useState<any[]>([])
   const [isLoadingChatRooms, setIsLoadingChatRooms] = useState(false)
   const [loadingRoomId, setLoadingRoomId] = useState<string | null>(null)
+  const [currentRoomId, setCurrentRoomId] = useState<string | null>(null)
 
   // 프로필 드롭다운 상태
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false)
@@ -128,6 +129,9 @@ export default function HomePage() {
     const chatParam = urlParams.get('chat')
     const roomId = urlParams.get('roomId')
     
+    // 현재 활성 채팅방 ID 업데이트
+    setCurrentRoomId(roomId)
+    
     if (chatParam === 'true') {
       setIsChatMode(true)
       setShowAnalysis(true)
@@ -145,6 +149,18 @@ export default function HomePage() {
     if (roomId) {
       loadChatRoom(roomId)
     }
+  }, [])
+
+  // 브라우저 뒤로 가기/앞으로 가기 버튼 처리
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const roomId = urlParams.get('roomId')
+      setCurrentRoomId(roomId)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   // 인증 상태 변경 시 채팅방 목록 로딩
@@ -165,6 +181,7 @@ export default function HomePage() {
     setIsSidebarCollapsed(true)
     setIsMobileSidebarOpen(false)
     setIsMobileResultsOpen(false)
+    setCurrentRoomId(null) // 현재 활성 채팅방 초기화
     // analyze 페이지의 깨끗한 상태로 이동 (파라미터 제거)
     router.push('/analyze')
   }
@@ -173,6 +190,9 @@ export default function HomePage() {
   const navigateToChatRoom = async (roomId: string) => {
     try {
       setLoadingRoomId(roomId)
+      
+      // 현재 활성 채팅방 업데이트
+      setCurrentRoomId(roomId)
       
       // URL 업데이트
       const newUrl = `/analyze?roomId=${roomId}`
@@ -192,20 +212,24 @@ export default function HomePage() {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     const now = new Date()
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
     
-    if (diffInHours < 1) {
+    if (diffInMinutes < 1) {
       return '방금 전'
-    } else if (diffInHours < 24) {
+    } else if (diffInMinutes < 30) {
+      return `${diffInMinutes}분 전`
+    } else if (diffInMinutes < 60) {
+      return '30분 전'
+    } else if (diffInMinutes < 120) {  // 2시간 미만
+      return '1시간 전'
+    } else if (diffInMinutes < 24 * 60) {  // 24시간 미만
+      const diffInHours = Math.floor(diffInMinutes / 60)
       return `${diffInHours}시간 전`
-    } else if (diffInHours < 24 * 7) {
-      const diffInDays = Math.floor(diffInHours / 24)
+    } else if (diffInMinutes < 24 * 60 * 7) {  // 1주일 미만
+      const diffInDays = Math.floor(diffInMinutes / (24 * 60))
       return `${diffInDays}일 전`
     } else {
-      return date.toLocaleDateString('ko-KR', {
-        month: 'short',
-        day: 'numeric'
-      })
+      return '오래된'
     }
   }
 
@@ -1076,34 +1100,45 @@ export default function HomePage() {
                     {isChatMode ? "이전 채팅" : "이전 분석"}
                   </h3>
                   <div className="space-y-2">
-                    {chatRooms.map((room) => (
-                      <button
-                        key={room.id}
-                        onClick={() => navigateToChatRoom(room.id)}
-                        disabled={loadingRoomId === room.id}
-                        className={`w-full text-left p-2 rounded-lg transition-colors group relative ${
-                          loadingRoomId === room.id 
-                            ? 'bg-gray-800 cursor-not-allowed' 
-                            : 'hover:bg-gray-800'
-                        }`}
-                      >
-                        {loadingRoomId === room.id && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 rounded-lg">
-                            <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                    {chatRooms.map((room) => {
+                      const isActive = currentRoomId === room.id
+                      const isLoading = loadingRoomId === room.id
+                      
+                      return (
+                        <button
+                          key={room.id}
+                          onClick={() => navigateToChatRoom(room.id)}
+                          disabled={isLoading}
+                          className={`w-full text-left p-2 rounded-lg transition-colors group relative ${
+                            isLoading 
+                              ? 'bg-gray-800 cursor-not-allowed' 
+                              : isActive
+                                ? 'bg-gray-800 hover:bg-gray-700'
+                                : 'hover:bg-gray-800'
+                          }`}
+                        >
+                          {isLoading && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 rounded-lg">
+                              <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                            </div>
+                          )}
+                          <div className={`text-sm truncate transition-colors ${
+                            isLoading 
+                              ? 'text-gray-400' 
+                              : isActive
+                                ? 'text-emerald-400 font-medium'
+                                : 'text-white group-hover:text-emerald-400'
+                          }`}>
+                            {room.title}
                           </div>
-                        )}
-                        <div className={`text-sm truncate transition-colors ${
-                          loadingRoomId === room.id 
-                            ? 'text-gray-400' 
-                            : 'text-white group-hover:text-emerald-400'
-                        }`}>
-                          {room.title}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {formatDate(room.updated_at)}
-                        </div>
-                      </button>
-                    ))}
+                          <div className={`text-xs mt-1 ${
+                            isActive ? 'text-emerald-300' : 'text-gray-500'
+                          }`}>
+                            {formatDate(room.updated_at)}
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
