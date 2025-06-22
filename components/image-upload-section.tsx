@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield, Play, X, Crown } from "lucide-react"
+import { Upload, FileText, Camera, Loader2, AlertCircle, Info, Shield, Play, X, Crown, HelpCircle } from "lucide-react"
 import { useApiRequest, useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { loadAd, trackAdImpression, trackAdClick, type AdData } from "@/lib/ad-service"
@@ -22,12 +22,7 @@ interface ImageUploadSectionProps {
   isNewUser?: boolean
 }
 
-interface SupportedFormat {
-  extension: string
-  mimeType: string
-  description: string
-  maxSize: number
-}
+
 
 export default function ImageUploadSection({ 
   onAnalysisStart, 
@@ -50,7 +45,7 @@ export default function ImageUploadSection({
     limit: number
   } | null>(null)
   const [limitBypass, setLimitBypass] = useState(false)
-  const [supportedFormats, setSupportedFormats] = useState<SupportedFormat[]>([])
+
   const [showAdModal, setShowAdModal] = useState(false)
   const [pendingModel, setPendingModel] = useState<string>("")
   const [isWatchingAd, setIsWatchingAd] = useState(false)
@@ -78,38 +73,9 @@ export default function ImageUploadSection({
     return true
   }
 
-  // 지원 형식 조회
-  useEffect(() => {
-    fetchSupportedFormats()
-  }, [])
 
-  const fetchSupportedFormats = async () => {
-    try {
-      const response = await apiRequest('/api/medical/supported-formats')
-      if (response.ok) {
-        const data = await response.json()
-        // 응답이 배열인지 확인
-        if (Array.isArray(data)) {
-          setSupportedFormats(data)
-        } else {
-          setDefaultFormats()
-        }
-      } else {
-        setDefaultFormats()
-      }
-    } catch (error) {
-      setDefaultFormats()
-    }
-  }
 
-  const setDefaultFormats = () => {
-    // 기본값 설정
-    setSupportedFormats([
-      { extension: 'JPG', mimeType: 'image/jpeg', description: '처방전', maxSize: 5 * 1024 * 1024 },
-      { extension: 'PNG', mimeType: 'image/png', description: '검사 결과지', maxSize: 5 * 1024 * 1024 },
-      { extension: 'PDF', mimeType: 'application/pdf', description: '진단서', maxSize: 5 * 1024 * 1024 }
-    ])
-  }
+
 
   // 파일 크기 검증 (5MB = 5 * 1024 * 1024 bytes)
   const validateFile = (file: File): boolean => {
@@ -120,21 +86,11 @@ export default function ImageUploadSection({
       return false
     }
     
-    // supportedFormats가 유효한 배열인지 확인
-    if (supportedFormats && Array.isArray(supportedFormats) && supportedFormats.length > 0) {
-      const allowedTypes = supportedFormats.map(format => format.mimeType)
-      if (!allowedTypes.includes(file.type)) {
-        const supportedExtensions = supportedFormats.map(f => f.extension).join(', ')
-        setError(`${supportedExtensions} 파일만 업로드 가능합니다.`)
-        return false
-      }
-    } else {
-      // 기본 타입 검증
-      const defaultAllowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
-      if (!defaultAllowedTypes.includes(file.type)) {
-        setError('JPG, PNG, PDF 파일만 업로드 가능합니다.')
-        return false
-      }
+    // 기본 타입 검증
+    const defaultAllowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf']
+    if (!defaultAllowedTypes.includes(file.type)) {
+      setError('JPG, PNG, PDF 파일만 업로드 가능합니다.')
+      return false
     }
     
     return true
@@ -397,17 +353,11 @@ export default function ImageUploadSection({
   }
 
   const getAcceptTypes = () => {
-    if (!supportedFormats || !Array.isArray(supportedFormats) || supportedFormats.length === 0) {
-      return '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf'
-    }
-    return supportedFormats.map(format => format.mimeType).join(',')
+    return '.jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf'
   }
 
   const getFileExtensions = () => {
-    if (!supportedFormats || !Array.isArray(supportedFormats) || supportedFormats.length === 0) {
-      return '.jpg,.jpeg,.png,.pdf'
-    }
-    return supportedFormats.map(format => `.${format.extension.toLowerCase()}`).join(',')
+    return '.jpg,.jpeg,.png,.pdf'
   }
 
   // 모델 변경 핸들러
@@ -495,29 +445,28 @@ export default function ImageUploadSection({
                     <SelectValue placeholder="모델 선택" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                    <SelectItem value="gpt-4o-mini">
+                      <div className="flex items-center w-full">
+                        <span>gpt-4o-mini</span>
+                        <div className="flex items-center space-x-1 ml-auto">
+                          <span className="text-xs bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">
+                            FREE
+                          </span>
+                        </div>
+                      </div>
+                    </SelectItem>
                     <SelectItem value="gpt-4o">
-                      <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center w-full">
                         <span>gpt-4o</span>
-                        <div className="flex items-center space-x-1">
-                          {isNewUser && (
-                            <span className="text-xs bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">
-                              FREE
-                            </span>
-                          )}
+                        <div className="flex items-center space-x-1 ml-auto">
                           <Crown className="w-3 h-3 text-amber-500" />
                         </div>
                       </div>
                     </SelectItem>
                     <SelectItem value="gpt-4.1">
-                      <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center w-full">
                         <span>gpt-4.1</span>
-                        <div className="flex items-center space-x-1">
-                          {isNewUser && (
-                            <span className="text-xs bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">
-                              FREE
-                            </span>
-                          )}
+                        <div className="flex items-center space-x-1 ml-auto">
                           <Crown className="w-3 h-3 text-amber-500" />
                         </div>
                       </div>
@@ -675,19 +624,38 @@ export default function ImageUploadSection({
                     onChange={handleFileUpload}
                     className="hidden"
                   />
-                  <Button
-                    onClick={() => {
-                      // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
-                      if (!checkAuthentication()) {
-                        return
-                      }
-                      fileInputRef.current?.click()
-                    }}
-                    className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    파일 선택하기
-                  </Button>
+                  <div className="flex items-center justify-center space-x-2">
+                    <Button
+                      onClick={() => {
+                        // 인증 체크 - 토큰이 없으면 로그인 페이지로 리다이렉트
+                        if (!checkAuthentication()) {
+                          return
+                        }
+                        fileInputRef.current?.click()
+                      }}
+                      className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-white px-6 py-2 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      파일 선택하기
+                    </Button>
+                    
+                    {/* 파일 품질 안내 툴팁 */}
+                    <div className="relative group">
+                      <HelpCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
+                      <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
+                          <div className="space-y-1">
+                            <div className="font-medium">📸 파일 품질 안내</div>
+                            <div>• 텍스트가 선명하고 잘 보이는 이미지</div>
+                            <div>• 흐릿하거나 글씨가 작으면 인식 어려움</div>
+                            <div>• 밝은 조명, 그림자 없는 환경에서 촬영</div>
+                          </div>
+                          {/* 툴팁 화살표 */}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
             )}
           </div>

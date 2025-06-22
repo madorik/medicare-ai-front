@@ -118,6 +118,9 @@ export default function HomePage() {
   const [isWatchingHeaderAd, setIsWatchingHeaderAd] = useState(false)
   const [headerAdWatchTime, setHeaderAdWatchTime] = useState(0)
   
+  // 신규 사용자 관련 상태
+  const [isNewUser, setIsNewUser] = useState(false)
+  
 
 
   // inputMessage 상태 변경 추적 (디버깅용)
@@ -165,10 +168,39 @@ export default function HomePage() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  // 인증 상태 변경 시 채팅방 목록 로딩
+  // 신규 사용자 체크 및 이벤트 팝업 표시 함수 (로그인 사용자만)
+  const checkNewUser = () => {
+    // 로그인하지 않은 사용자는 처리하지 않음
+    if (!user || !user.createdAt) {
+      console.log('🔍 로그인하지 않은 사용자 또는 createdAt 정보 없음:', user)
+      setIsNewUser(false)
+      return
+    }
+    
+    const createdAt = new Date(user.createdAt)
+    const now = new Date()
+    const diffInDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+    
+    console.log('📅 가입일 체크:', {
+      createdAt: createdAt.toISOString(),
+      now: now.toISOString(),
+      diffInDays,
+      isNewUser: diffInDays <= 3
+    })
+    
+    // 신규 사용자 여부 설정 (가입 후 3일 이내)
+    if (diffInDays <= 3) {
+      setIsNewUser(true)
+    } else {
+      setIsNewUser(false)
+    }
+  }
+
+  // 인증 상태 변경 시 채팅방 목록 로딩 및 신규 사용자 체크
   useEffect(() => {
     if (user && token && !isLoading) {
       loadChatRooms()
+      checkNewUser()
     }
   }, [user, token, isLoading])
 
@@ -1522,35 +1554,41 @@ export default function HomePage() {
                       <SelectValue placeholder="모델 선택" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
+                      <SelectItem value="gpt-4o-mini">
+                        <div className="flex items-center w-full">
+                          <span>gpt-4o-mini</span>
+                          <div className="flex items-center space-x-1 ml-auto">
+                            <span className="text-xs bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">
+                              FREE
+                            </span>
+                          </div>
+                        </div>
+                      </SelectItem>
                       <SelectItem value="gpt-4o">
-                        <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center w-full">
                           <span>gpt-4o</span>
-                          <div className="flex items-center space-x-1">
-                            {isNewUser && (
-                              <span className="text-xs bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">
-                                FREE
-                              </span>
-                            )}
+                          <div className="flex items-center space-x-1 ml-auto">
                             <Crown className="w-3 h-3 text-amber-500" />
                           </div>
                         </div>
                       </SelectItem>
                       <SelectItem value="gpt-4.1">
-                        <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center w-full">
                           <span>gpt-4.1</span>
-                          <div className="flex items-center space-x-1">
-                            {isNewUser && (
-                              <span className="text-xs bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded">
-                                FREE
-                              </span>
-                            )}
+                          <div className="flex items-center space-x-1 ml-auto">
                             <Crown className="w-3 h-3 text-amber-500" />
                           </div>
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
+                  
+                  {isNewUser && (
+                    <div className="hidden md:flex items-center space-x-1 bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-lg px-2 py-1">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs font-medium text-emerald-700">신규 3일 무료!</span>
+                    </div>
+                  )}
                   
                   {/* 모바일 분석 결과 보기 버튼 */}
                   {(analysisData || isAnalyzing) && (
@@ -1790,6 +1828,7 @@ export default function HomePage() {
               onRoomIdReceived={updateUrlWithRoomId}
               selectedModel={selectedModel}
               onModelChange={setSelectedModel}
+              isNewUser={isNewUser}
             />
                     </div>
                   </div>
