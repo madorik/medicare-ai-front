@@ -1380,9 +1380,19 @@ export default function HomePage() {
                 className="flex items-center space-x-2 hover:text-emerald-400 transition-colors cursor-pointer group"
               >
                 <Stethoscope className="w-6 h-6 text-emerald-400" />
-                <span className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
-                  또닥 AI
-                </span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
+                    또닥 AI
+                  </span>
+                  <div className="relative">
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-200">
+                      BETA
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 text-white text-xs font-bold px-2 py-1 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                      BETA
+                    </div>
+                  </div>
+                </div>
               </button>
             )}
             {isSidebarCollapsed && (

@@ -126,9 +126,19 @@ export default function InfoPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-emerald-200 transition-all duration-300">
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                또닥 AI
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+                  또닥 AI
+                </span>
+                <div className="relative">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-200">
+                    BETA
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 text-white text-xs font-bold px-2 py-1 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                    BETA
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex items-center flex-wrap gap-3">
@@ -516,7 +526,17 @@ export default function InfoPage() {
                 <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Stethoscope className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-2xl font-bold">또닥 AI</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl font-bold">또닥 AI</span>
+                  <div className="relative">
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-200">
+                      BETA
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 text-white text-xs font-bold px-2 py-1 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                      BETA
+                    </div>
+                  </div>
+                </div>
               </div>
               <p className="text-gray-400 leading-relaxed mb-4">
                 AI 기술로 의료 정보를 더 쉽고 빠르게 
