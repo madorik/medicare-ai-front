@@ -119,64 +119,77 @@ export default function InfoPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 overflow-x-hidden">
       {/* Header */}
       <header className="border-b border-white/20 bg-white/60 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="container mx-auto px-4 py-3 md:py-4">
+          <div className="flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center space-x-3 group cursor-pointer">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-emerald-200 transition-all duration-300">
-                <Stethoscope className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-2 md:space-x-3 group cursor-pointer flex-shrink-0">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-emerald-200 transition-all duration-300">
+                <Stethoscope className="w-4 h-4 md:w-6 md:h-6 text-white" />
               </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <div className="flex items-center space-x-1 md:space-x-2">
+                <span className="text-lg md:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                   또닥 AI
                 </span>
                 <div className="relative">
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-200">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-full shadow-lg transform -rotate-6 hover:rotate-0 transition-transform duration-200">
                     BETA
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 text-white text-xs font-bold px-2 py-1 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 text-white text-xs font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-full opacity-0 hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
                     BETA
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center flex-wrap gap-3">
+            {/* Navigation */}
+            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
               {!isLoading && (
                 <>
                   {user ? (
-                    <div className="flex items-center flex-wrap gap-3">
-                      <Button asChild className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-200 transition-all duration-300">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <Button 
+                        asChild 
+                        size="sm"
+                        className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-200 transition-all duration-300 text-xs md:text-sm px-3 md:px-4"
+                      >
                         <Link href="/analyze">
-                          <FileText className="w-4 h-4 sm:mr-2" />
-                          <span className="hidden sm:inline">분석하기</span>
+                          <FileText className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                          <span className="hidden md:inline">분석하기</span>
                         </Link>
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={handleLogout}
-                        className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all duration-300"
+                        className="text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 hover:border-red-300 transition-all duration-300 text-xs md:text-sm px-3 md:px-4"
                       >
-                        <LogOut className="w-4 h-4 sm:mr-2" />
-                        <span className="hidden sm:inline">로그아웃</span>
+                        <LogOut className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                        <span className="hidden md:inline">로그아웃</span>
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3">
-                      <Button variant="ghost" asChild className="text-gray-700 hover:text-emerald-600 transition-colors">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <Button 
+                        variant="ghost" 
+                        asChild 
+                        size="sm"
+                        className="text-gray-700 hover:text-emerald-600 transition-colors text-xs md:text-sm px-3 md:px-4"
+                      >
                         <Link href="/login">로그인</Link>
                       </Button>
-                      <Button asChild className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-200 transition-all duration-300">
+                      <Button 
+                        asChild 
+                        size="sm"
+                        className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-emerald-200 transition-all duration-300 text-xs md:text-sm px-3 md:px-4"
+                      >
                         <Link href="/analyze">
-                          무료로 시작하기
-                          <ArrowRight className="w-4 h-4 ml-2" />
+                          <span className="hidden sm:inline">무료로 시작</span>
+                          <span className="sm:hidden">시작</span>
+                          <ArrowRight className="w-3 h-3 md:w-4 md:h-4 ml-1 md:ml-2" />
                         </Link>
                       </Button>
                     </div>
                   )}
-                  
-
                 </>
               )}
             </div>
