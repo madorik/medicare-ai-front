@@ -8,6 +8,7 @@ import { SimpleToastContainer } from "@/components/ui/simple-toast"
 import ImageUploadSection from "@/components/image-upload-section"
 import AnalysisResults from "@/components/analysis-results"
 import ContactModal from "@/components/contact-modal"
+import CoupangBanner from "@/components/ui/coupang-banner"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import {
@@ -1818,18 +1819,26 @@ export default function HomePage() {
 
                   {/* Upload Section */}
                   <div className="mb-6">
-                    <div className="max-w-4xl mx-auto">
-                                  <ImageUploadSection 
-              onAnalysisStart={handleAnalysisStart}
-              onAnalysisResult={handleAnalysisResult}
-              onAnalysisComplete={handleAnalysisComplete}
-              onError={handleAnalysisError}
-              onStatusUpdate={handleStatusUpdate}
-              onRoomIdReceived={updateUrlWithRoomId}
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-              isNewUser={isNewUser}
-            />
+                    <div className="max-w-7xl mx-auto flex items-start justify-center gap-8">
+                      {/* 업로드 영역 */}
+                      <div className="flex-shrink-0">
+                        <ImageUploadSection 
+                          onAnalysisStart={handleAnalysisStart}
+                          onAnalysisResult={handleAnalysisResult}
+                          onAnalysisComplete={handleAnalysisComplete}
+                          onError={handleAnalysisError}
+                          onStatusUpdate={handleStatusUpdate}
+                          onRoomIdReceived={updateUrlWithRoomId}
+                          selectedModel={selectedModel}
+                          onModelChange={setSelectedModel}
+                          isNewUser={isNewUser}
+                        />
+                      </div>
+                      
+                      {/* 쿠팡 배너 */}
+                      <div className="hidden lg:block flex-shrink-0">
+                        <CoupangBanner />
+                      </div>
                     </div>
                   </div>
                 </div>
