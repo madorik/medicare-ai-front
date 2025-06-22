@@ -118,10 +118,7 @@ export default function HomePage() {
   const [isWatchingHeaderAd, setIsWatchingHeaderAd] = useState(false)
   const [headerAdWatchTime, setHeaderAdWatchTime] = useState(0)
   
-  // 이벤트 관련 상태
-  const [showEventModal, setShowEventModal] = useState(false)
-  const [isNewUser, setIsNewUser] = useState(false)
-  const [dontShowAgain, setDontShowAgain] = useState(false)
+
 
   // inputMessage 상태 변경 추적 (디버깅용)
   useEffect(() => {
@@ -168,11 +165,10 @@ export default function HomePage() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  // 인증 상태 변경 시 채팅방 목록 로딩 및 신규 사용자 체크
+  // 인증 상태 변경 시 채팅방 목록 로딩
   useEffect(() => {
     if (user && token && !isLoading) {
       loadChatRooms()
-      checkNewUser()
     }
   }, [user, token, isLoading])
 
@@ -189,48 +185,7 @@ export default function HomePage() {
     }, '')
   }
 
-  // 신규 사용자 체크 및 이벤트 팝업 표시 함수 (로그인 사용자만)
-  const checkNewUser = () => {
-    // 로그인하지 않은 사용자는 처리하지 않음
-    if (!user || !user.createdAt) {
-      console.log('🔍 로그인하지 않은 사용자 또는 createdAt 정보 없음:', user)
-      setIsNewUser(false)
-      return
-    }
-    
-    const createdAt = new Date(user.createdAt)
-    const now = new Date()
-    const diffInDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
-    
-    console.log('📅 가입일 체크:', {
-      createdAt: createdAt.toISOString(),
-      now: now.toISOString(),
-      diffInDays,
-      isNewUser: diffInDays <= 3
-    })
-    
-    // 신규 사용자 여부 설정 (가입 후 3일 이내)
-    if (diffInDays <= 3) {
-      setIsNewUser(true)
-    } else {
-      setIsNewUser(false)
-    }
-    
-    // 로그인한 사용자에게만 이벤트 모달 표시 (쿠키로 중복 방지)
-    const hasSeenEventModal = getCookie('hasSeenEventModal')
-    if (!hasSeenEventModal) {
-      setShowEventModal(true)
-    }
-  }
 
-  // 이벤트 모달 닫기 핸들러
-  const handleCloseEventModal = () => {
-    if (dontShowAgain) {
-      setCookie('hasSeenEventModal', 'true', 30) // 30일간 보지 않기
-    }
-    setShowEventModal(false)
-    setDontShowAgain(false)
-  }
 
   // 새로운 분석 페이지로 이동하는 함수
   const navigateToHome = () => {
@@ -1835,7 +1790,6 @@ export default function HomePage() {
               onRoomIdReceived={updateUrlWithRoomId}
               selectedModel={selectedModel}
               onModelChange={setSelectedModel}
-              isNewUser={isNewUser}
             />
                     </div>
                   </div>
@@ -2083,102 +2037,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* 신규 사용자 이벤트 모달 */}
-      {showEventModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden">
-            {/* 이벤트 헤더 */}
-            <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-6 text-white text-center relative">
-              <button
-                onClick={handleCloseEventModal}
-                className="absolute top-4 right-4 text-white hover:text-gray-200"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <div className="mb-2">
-                <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Crown className="w-8 h-8 text-yellow-300" />
-                </div>
-                <h2 className="text-2xl font-bold mb-1">🎉 환영합니다!</h2>
-                <p className="text-emerald-100 text-sm">가입을 축하드립니다</p>
-              </div>
-            </div>
 
-            {/* 이벤트 내용 */}
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  {isNewUser ? "신규 가입 이벤트" : "진행중인 이벤트"}
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {isNewUser ? (
-                    <>가입 후 <span className="font-bold text-emerald-600">3일간</span> 모든 프리미엄 기능을 광고없이 무제한으로 사용하세요!</>
-                  ) : (
-                    <>현재 진행중인 <span className="font-bold text-emerald-600">특별 이벤트</span>를 확인해보세요!</>
-                  )}
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg p-4 mb-6">
-                <h4 className="font-semibold text-gray-800 mb-3 flex items-center">
-                  <Crown className="w-4 h-4 text-yellow-500 mr-2" />
-                  {isNewUser ? "무료로 사용 가능한 기능" : "프리미엄 기능 안내"}
-                </h4>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-center">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                    GPT-4o 고급 AI 모델 사용
-                    {!isNewUser && <span className="ml-2 text-xs text-orange-600">(광고 시청 후)</span>}
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                    GPT-4.1 최신 AI 모델 사용
-                    {!isNewUser && <span className="ml-2 text-xs text-orange-600">(광고 시청 후)</span>}
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                    {isNewUser ? "무제한 의료 문서 분석" : "의료 문서 분석 (일 3회)"}
-                  </li>
-                  <li className="flex items-center">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                    {isNewUser ? "무제한 AI 채팅 상담" : "AI 채팅 상담"}
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
-                <p className="text-xs text-yellow-800 text-center">
-                  {isNewUser ? (
-                    <>⏰ 신규 혜택: 가입일로부터 3일간 (자동 적용)</>
-                  ) : (
-                    <>⭐ 기존 사용자도 프리미엄 기능을 경험해보세요!</>
-                  )}
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-2 mb-4">
-                <input
-                  type="checkbox"
-                  id="dontShowAgain"
-                  checked={dontShowAgain}
-                  onChange={(e) => setDontShowAgain(e.target.checked)}
-                  className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 focus:ring-2"
-                />
-                <label htmlFor="dontShowAgain" className="text-sm text-gray-600">
-                  다시 보지 않기
-                </label>
-              </div>
-
-              <Button
-                onClick={handleCloseEventModal}
-                className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white py-3"
-              >
-                지금 바로 시작하기
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 헤더 광고 시청 모달 */}
       {showHeaderAdModal && (
