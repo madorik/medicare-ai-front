@@ -29,7 +29,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Google AdSense 코드 */}
-        <script
+        <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6951210541539723"
           crossOrigin="anonymous"
